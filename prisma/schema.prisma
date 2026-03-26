@@ -1,0 +1,484 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  fullName      String?
+  avatarUrl     String?
+  bio           String?
+  resumeUrl     String?
+  githubUrl     String?
+  twitterUrl    String?
+  linkedinUrl   String?
+  certifications String?
+  role          String    @default("MEMBER")
+  permissions   String?
+  score         Int       @default(0)
+  streak        Int       @default(0)
+  streakLastUpdate DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  notes         Note[]
+  resources     Resource[]
+  bookmarks     Bookmark[]
+  upvotes       Upvote[]
+  events        Event[]
+  notifications Notification[]
+  adminRequests AdminRequest[]
+  steps         RoadmapStep[]
+  cheatsheets      Cheatsheet[]
+  blogPosts        BlogPost[]
+  blogComments     BlogComment[]
+  progress         UserProgress[]
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  coverImage  String?
+  tags        String
+  readTime    Int      @default(0)
+  views       Int      @default(0)
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  bookmarks   Bookmark[]
+  upvotes     Upvote[]
+
+  @@index([status])
+  @@index([authorId])
+}
+
+model Resource {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String
+  url         String
+  imageUrl    String?
+  tags        String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  bookmarks   Bookmark[]
+  upvotes     Upvote[]
+
+  @@index([status])
+  @@index([type])
+  @@index([authorId])
+}
+
+model Event {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  type         String
+  startTime    DateTime
+  endTime      DateTime? // Optional end time — used to detect ongoing events
+  externalLink String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  status       String    @default("PENDING")
+  imageUrls    String?
+  feedback     String?
+  tags         String    @default("")
+
+  authorId        String?
+  author          User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  interestedCount Int        @default(0)
+  bookmarks       Bookmark[]
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  content   String
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  link      String?
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isRead])
+}
+
+
+
+model CertGuide {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  difficulty  Int
+  prepTime    String
+  passScore   String
+  content     String
+  resources   String
+  tags        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookmarks   Bookmark[]
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  createdAt  DateTime @default(now())
+  itemType   String
+
+  noteId     String?
+  resourceId String?
+  certId     String?
+  stepId     String?
+  eventId    String?
+  topicId    String?
+  subtopicId String?
+  remindMe   Boolean   @default(false)
+
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note       Note?           @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  resource   Resource?       @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  cert       CertGuide?      @relation(fields: [certId], references: [id], onDelete: Cascade)
+  step       RoadmapStep?    @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  event      Event?          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  topic      RoadmapTopic?   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  subtopic   RoadmapSubTopic? @relation(fields: [subtopicId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([itemType])
+  @@index([noteId])
+  @@index([resourceId])
+  @@index([stepId])
+  @@index([eventId])
+  @@index([topicId])
+  @@index([subtopicId])
+}
+
+model Upvote {
+  id         String   @id @default(cuid())
+  userId     String
+  createdAt  DateTime @default(now())
+  itemType   String
+
+  noteId     String?
+  resourceId String?
+  stepId     String?
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note       Note?        @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  resource   Resource?    @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  step       RoadmapStep? @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([itemType])
+  @@index([noteId])
+  @@index([resourceId])
+  @@index([stepId])
+}
+
+model AdminRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  reason    String?
+  category  String   @default("GENERAL")
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ContactRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  reason    String
+  message   String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Roadmap {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  icon        String   @default("🗺️")
+  color       String   @default("#3B82F6")
+  order       Int      @default(0)
+  status      String   @default("PUBLISHED")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  steps       RoadmapStep[]
+
+  @@index([status])
+  @@index([order])
+}
+
+model RoadmapStep {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  icon        String   @default("📦")
+  order       Int      @default(0)
+  status      String   @default("PENDING")
+  difficulty  String   @default("BEGINNER")
+  tags        String   @default("")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roadmapId   String?
+  roadmap     Roadmap?  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  authorId    String?
+  author      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  topics      RoadmapTopic[]
+  resources   RoadmapResource[]
+  bookmarks   Bookmark[]
+  upvotes     Upvote[]
+
+  // ── Unified Module Extensions ──
+  introContent String? @db.Text
+  attachedModules RoadmapStepModule[] @relation("StepToModule")
+  moduleAttachments RoadmapStepModule[] @relation("ModuleToStep")
+
+  @@index([status])
+  @@index([roadmapId])
+  @@index([order])
+}
+
+model RoadmapStepModule {
+  id         String @id @default(cuid())
+  stepId     String
+  moduleId   String
+  order      Int    @default(0)
+  isOptional Boolean @default(false)
+  optionalDescription String? @db.Text
+
+  step     RoadmapStep @relation("StepToModule", fields: [stepId], references: [id], onDelete: Cascade)
+  module   RoadmapStep @relation("ModuleToStep", fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([stepId, moduleId])
+}
+
+model RoadmapTopic {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stepId    String
+  step      RoadmapStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  subtopics RoadmapSubTopic[]
+  bookmarks Bookmark[]
+
+  @@index([stepId])
+  @@index([order])
+}
+
+model RoadmapSubTopic {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topicId   String
+  topic     RoadmapTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  bookmarks Bookmark[]
+
+  @@index([topicId])
+  @@index([order])
+}
+
+model RoadmapResource {
+  id               String   @id @default(cuid())
+  title            String
+  url              String
+  type             String
+  description      String?
+  imageUrl         String?
+  order            Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  globalResourceId String?
+
+  stepId           String
+  step             RoadmapStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([stepId])
+}
+
+model Cheatsheet {
+  id          String              @id @default(cuid())
+  title       String
+  slug        String              @unique
+  description String?
+  category    String
+  icon        String              @default("📋")
+  difficulty  String              @default("BEGINNER")
+  readTime    Int                 @default(10)
+  coverImage  String?
+  tags        String?
+  status      String              @default("DRAFT")
+  viewCount   Int                 @default(0)
+  authorId    String
+  author      User                @relation(fields: [authorId], references: [id])
+  sections    CheatsheetSection[]
+  resources   CheatsheetResource[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([authorId])
+}
+
+model CheatsheetSection {
+  id           String                 @id @default(cuid())
+  cheatsheetId String
+  cheatsheet   Cheatsheet             @relation(fields: [cheatsheetId], references: [id], onDelete: Cascade)
+  title        String
+  order        Int                    @default(0)
+  subsections  CheatsheetSubsection[]
+}
+
+model CheatsheetSubsection {
+  id        String            @id @default(cuid())
+  sectionId String
+  section   CheatsheetSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title     String
+  content   String            @db.Text
+  order     Int               @default(0)
+}
+
+model CheatsheetResource {
+  id           String   @id @default(cuid())
+  title        String
+  url          String
+  type         String   @default("LINK")
+  description  String?
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cheatsheetId String
+  cheatsheet   Cheatsheet @relation(fields: [cheatsheetId], references: [id], onDelete: Cascade)
+
+  @@index([cheatsheetId])
+}
+
+model BlogPost {
+  id         String        @id @default(cuid())
+  title      String
+  slug       String        @unique
+  excerpt    String?
+  content    String        @db.Text
+  coverImage String?
+  category   String
+  tags       String?
+  readTime   Int           @default(5)
+  status     String        @default("DRAFT")
+  viewCount  Int           @default(0)
+  likeCount  Int           @default(0)
+  authorId   String
+  author     User          @relation(fields: [authorId], references: [id])
+  comments   BlogComment[]
+  resources  BlogResource[]
+  isPinned   Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([isPinned])
+}
+
+model BlogComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+}
+
+model BlogResource {
+  id        String   @id @default(cuid())
+  title     String
+  url       String
+  type      String   @default("LINK")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+
+
+model UserProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  itemType  String   // "TOPIC" or "SUBTOPIC"
+  itemId    String   // The ID of the Topic or Subtopic
+  completed Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId])
+  @@index([itemId])
+}
