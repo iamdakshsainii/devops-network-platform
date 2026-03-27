@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Save, Plus, Code2, Type, FileText,
   Loader2, X, Trash2, ChevronDown, ChevronRight, Image as ImageIcon,
-  Eye, Edit, Maximize2
+  Eye, Edit, Maximize2, GripVertical, ArrowUp, ArrowDown
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -373,7 +373,23 @@ export default function EditModulePage({ params }: { params: Promise<{ id: strin
     } catch { }
   };
 
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+
+  const moveTopic = (from: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= form.topics.length) return;
+    const newTopics = [...form.topics];
+    const [moved] = newTopics.splice(from, 1);
+    newTopics.splice(toIndex, 0, moved);
+    setForm({ ...form, topics: newTopics });
+  };
+
   // ── Topic helpers ───────────────────────────────────────────────────────
+  const addTopicAtIndex = (index: number) => {
+    const newTopics = [...form.topics];
+    newTopics.splice(index, 0, emptyTopic());
+    setForm({ ...form, topics: newTopics });
+  };
+
   const updateTopic = (i: number, data: Partial<TopicForm>) => {
     const topics = [...form.topics];
     topics[i] = { ...topics[i], ...data };
@@ -642,30 +658,85 @@ Stream backwards downwards flawlessly downwards flawlessly downstairs downwards 
             )}
 
             {form.topics.map((topic, ti) => (
-              <Card key={ti} className="overflow-hidden">
-                {/* Topic header */}
-                <div
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/40 transition-colors border-b"
-                  onClick={() => updateTopic(ti, { expanded: !topic.expanded })}
-                >
-                  <span className="text-xs font-mono font-bold text-muted-foreground/60 shrink-0">{String(ti + 1).padStart(2, "0")}</span>
-                  <span className="text-sm font-semibold flex-1 truncate">{topic.title || `Topic ${ti + 1}`}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 text-[11px] text-primary gap-1 py-0 px-1.5 hover:bg-primary/10"
-                    onClick={(e) => { e.stopPropagation(); setOpenTopicPaste(openTopicPaste === ti ? null : ti); setTopicMarkdownInput(""); }}
+              <div key={ti}>
+                {/* Plus Divider (above each topic) */}
+                <div className="group relative h-4 flex items-center justify-center -my-2 opacity-0 hover:opacity-100 transition-opacity z-10 transition-all duration-300">
+                  <div className="absolute inset-x-0 h-px bg-primary/20 scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-6 w-6 rounded-full p-0 bg-background border border-primary/20 text-primary shadow-sm hover:scale-110 active:scale-95 transition-all"
+                    onClick={() => addTopicAtIndex(ti)}
+                    title="Insert Topic Here"
                   >
-                    <FileText className="h-3 w-3" /> Paste .md
+                    <Plus className="h-3 w-3" />
                   </Button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setForm({ ...form, topics: form.topics.filter((_, j) => j !== ti) }); }}
-                    className="p-1 hover:bg-destructive/10 rounded ml-1"
-                  >
-                    <X className="h-3.5 w-3.5 text-destructive" />
-                  </button>
-                  {topic.expanded ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
                 </div>
+
+                <Card 
+                  className={`overflow-hidden transition-all duration-300 border-border/40 ${topic.expanded ? "shadow-md ring-1 ring-primary/5" : "hover:shadow-sm"} ${draggedIdx === ti ? "opacity-30 border-dashed border-primary" : ""}`}
+                  draggable="true"
+                  onDragStart={() => setDraggedIdx(ti)}
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add("ring-2", "ring-primary/20"); }}
+                  onDragLeave={(e) => { e.currentTarget.classList.remove("ring-2", "ring-primary/20"); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("ring-2", "ring-primary/20");
+                    if (draggedIdx !== null && draggedIdx !== ti) {
+                      moveTopic(draggedIdx, ti);
+                    }
+                    setDraggedIdx(null);
+                  }}
+                  onDragEnd={() => setDraggedIdx(null)}
+                >
+                  <div
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer select-none transition-colors ${topic.expanded ? "bg-primary/5" : "hover:bg-muted/30"}`}
+                    onClick={() => {
+                      const nt = [...form.topics];
+                      nt[ti].expanded = !nt[ti].expanded;
+                      setForm({ ...form, topics: nt });
+                    }}
+                  >
+                    <GripVertical className="h-4 w-4 text-muted-foreground/30 cursor-grab active:cursor-grabbing hover:text-primary transition-colors shrink-0" />
+                    
+                    <span className="text-xs font-mono font-bold text-muted-foreground/60 shrink-0">{String(ti + 1).padStart(2, "0")}</span>
+                    <span className="text-sm font-semibold flex-1 truncate">{topic.title || `Topic ${ti + 1}`}</span>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); moveTopic(ti, ti-1); }} disabled={ti===0} title="Move Up"><ArrowUp className="h-3 w-3" /></Button>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); moveTopic(ti, ti+1); }} disabled={ti===form.topics.length-1} title="Move Down"><ArrowDown className="h-3 w-3" /></Button>
+                    </div>
+
+                    <div className="w-px h-4 bg-border/40 mx-1" />
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-[11px] text-primary gap-1 py-0 px-2 hover:bg-primary/10 transition-all font-bold"
+                      onClick={(e) => { e.stopPropagation(); setOpenTopicPaste(openTopicPaste === ti ? null : ti); setTopicMarkdownInput(""); }}
+                    >
+                      <FileText className="h-3.5 w-3.5" /> Import
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-600 shadow-none border-none ring-0 focus-visible:ring-0"
+                      onClick={(e) => { e.stopPropagation(); addTopicAtIndex(ti + 1); }}
+                      title="Insert Topic After"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setForm({ ...form, topics: form.topics.filter((_, j) => j !== ti) }); }}
+                      className="p-1 hover:bg-destructive/10 rounded ml-1 group/del transition-all"
+                      title="Delete Topic"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground group-hover/del:text-destructive" />
+                    </button>
+                    {topic.expanded ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                  </div>
 
                 {topic.expanded && (
                   <CardContent className="pt-4 space-y-5">
@@ -849,7 +920,8 @@ Stream backwards downwards flawlessly downwards flawlessly downstairs downwards 
                     </div>
                   </CardContent>
                 )}
-              </Card>
+                </Card>
+              </div>
             ))}
           </div>
 

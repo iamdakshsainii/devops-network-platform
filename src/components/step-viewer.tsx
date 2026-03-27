@@ -131,10 +131,43 @@ const PROSE = [
   "prose-pre:p-0 prose-pre:m-0 prose-pre:bg-transparent prose-pre:shadow-none prose-pre:border-0 prose-pre:rounded-none",
 ].join(" ");
 
+function slugify(text: string): string {
+  return text.toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+
+function getVirtualSubtopics(topic: Topic): Subtopic[] {
+  // If we have real subtopics (compatible with old data), use them
+  if (topic.subtopics && topic.subtopics.length > 0) return topic.subtopics;
+
+  const virtual: Subtopic[] = [];
+  const lines = (topic.content || "").split("\n");
+  
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("### ")) {
+      const title = trimmed.replace(/^###\s*/, "").trim();
+      virtual.push({
+        id: slugify(title),
+        title,
+        content: "", // Content not needed for sidebar
+        order: idx
+      });
+    }
+  });
+  return virtual;
+}
+
 function buildNavSequence(topics: Topic[]): ActiveView[] {
   const seq: ActiveView[] = [];
   for (const topic of topics) {
     seq.push({ kind: "topic", topicId: topic.id });
+    
+    // Also add subtopics to navigation if we are in Step-by-Step mode?
+    // Actually, usually we navigate by Topic, but the sidebar allows scrolling to subtopics.
   }
   return seq;
 }
@@ -549,6 +582,7 @@ export function StepViewer({
             <nav className="space-y-2">
               {step.topics.map((topic, i) => {
                 const isActiveTopic = activeView.topicId === topic.id;
+                const subs = getVirtualSubtopics(topic);
                 return (
                   <div key={topic.id} className="space-y-1">
                     <button
@@ -572,27 +606,17 @@ export function StepViewer({
                     </button>
 
                     {/* Subtopics sidebar list */}
-                    {topic.subtopics && topic.subtopics.length > 0 && (
+                    {subs.length > 0 && (
                       <div className={`ml-8 pl-6 border-l-2 border-slate-200 dark:border-zinc-800 space-y-1 overflow-hidden transition-all duration-500 ${(isActiveTopic || viewMode === "CONTINUOUS") ? "max-h-[1000px] opacity-100 py-2.5" : "max-h-0 opacity-0 py-0"}`}>
-                        {topic.subtopics.sort((a, b) => a.order - b.order).map((sub) => (
+                        {subs.sort((a, b) => a.order - b.order).map((sub) => (
                           <button
                             key={sub.id}
                             onClick={() => {
-                              if (viewMode === "CONTINUOUS") {
-                                const el = document.getElementById(`subtopic-${sub.id}`);
-                                if (el) {
-                                  const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                                  window.scrollTo({ top: y, behavior: 'smooth' });
-                                }
-                              } else {
-                                if (!isActiveTopic) navigate({ kind: "topic", topicId: topic.id });
-                                setTimeout(() => {
-                                  const el = document.getElementById(`subtopic-${sub.id}`);
-                                  if (el) {
-                                    const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                                    window.scrollTo({ top: y, behavior: 'smooth' });
-                                  }
-                                }, 100);
+                              // For virtual subtopics, we scroll directly to the slugified ID
+                              const el = document.getElementById(sub.id);
+                              if (el) {
+                                const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                                window.scrollTo({ top: y, behavior: 'smooth' });
                               }
                             }}
                             className="w-full text-left py-2.5 px-4 text-[14px] md:text-[15px] text-slate-600 dark:text-zinc-400 hover:text-primary transition-all rounded-xl hover:bg-primary/5 flex items-center gap-3.5 font-semibold group/sub"
