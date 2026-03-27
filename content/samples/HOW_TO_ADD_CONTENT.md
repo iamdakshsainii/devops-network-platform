@@ -11,8 +11,9 @@ Our platform follows a clean **2-level flat hierarchy** to keep the sidebar focu
 | Level | Syntax | Purpose |
 | :--- | :--- | :--- |
 | **1. Module** | `# Title` | The main course/chapter (e.g., "Docker Mastering"). |
-| **2. Topic** | `## Title` | **Sidebar Step.** These are the ONLY items listed in your navigation. Aim for **10-12 Topics** per module for maximum depth. |
-| **3. Content** | `###` or `####` | **Formatting Only.** These are internal headings within your topic. They do NOT appear in the sidebar. They help organize your "One Big Box" of content. |
+| **2. Topic** | `## Title` | **Sidebar Step.** These are the ONLY primary items listed. |
+| **3. Content** | `### Title` | **Sidebar Subtopic.** These appear as sub-links under each topic. |
+| **4. Internal** | `####` or `#####` | **Formatting Only.** These do NOT appear in the sidebar. Use for Problem/Solution. |
 
 ---
 
