@@ -661,7 +661,7 @@ export function StepViewer({
       <div className="flex flex-1 relative w-full px-4 md:px-6 font-sans">
         {sidebarOpen && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] md:hidden" onClick={() => setSidebarOpen(false)} />}
         <aside 
-          className={`fixed md:sticky ${isStandalone ? 'top-16 md:top-16' : 'top-16 md:top-16'} left-0 z-[150] md:z-10 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-3xl border-r md:border-r-0 transform transition-transform md:transform-none shadow-2xl md:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${isSidebarCollapsed ? "md:w-0 md:opacity-0 md:pointer-events-none md:p-0" : "px-4 py-8"} shrink-0 transition-all duration-300 h-[calc(100vh-64px)] overflow-y-auto custom-scrollbar`}
+          className={`fixed md:sticky ${isStandalone ? 'top-[140px]' : 'top-[140px]'} left-0 z-[150] md:z-10 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-3xl border-r md:border-border/10 transform transition-transform md:transform-none shadow-2xl md:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${isSidebarCollapsed ? "md:w-0 md:opacity-0 md:pointer-events-none md:p-0" : "px-4 pt-4 pb-20"} shrink-0 transition-all duration-300 h-fit`}
           style={{ width: isSidebarCollapsed ? 0 : sidebarOpen ? '100%' : `${sidebarWidth}px` }}
         >
           {/* Resize Handle */}
@@ -673,24 +673,29 @@ export function StepViewer({
           </div>
 
           <div className={isSidebarCollapsed ? "hidden" : "block"}>
-            <div className="mb-8 pb-6 border-b">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm shrink-0" style={{ backgroundColor: themeColor }}>{step.icon}</div>
-                  <div><h2 className="font-extrabold text-lg leading-tight">{step.title}</h2><p className="text-xs uppercase tracking-wider font-bold text-muted-foreground mt-0.5">Module {step.order + 1}</p></div>
-                </div>
-                {isAdmin && !isBlog && (
-                  <Link 
-                    href={isStandalone ? `/admin/modules?search=${encodeURIComponent(step.title)}` : `/admin/roadmaps?id=${roadmap.id}`} 
-                    target="_blank"
-                    className="p-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 shadow-sm transition-all"
-                    title="Edit via Admin"
+            <div className="mb-8 pb-6 border-b border-border/10 relative group-hud-header">
+               <div className="flex items-center gap-4 mb-4">
+                  <div 
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-2xl border border-white/10 shrink-0" 
+                    style={{ backgroundColor: themeColor, boxShadow: `0 10px 30px -5px ${themeColor}55` }}
                   >
-                    <Edit className="h-4 w-4" />
-                  </Link>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+                    {step.icon}
+                  </div>
+                  <div>
+                    <h2 className="font-black text-xl md:text-2xl tracking-tighter text-foreground leading-tight">{step.title}</h2>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary/80 mt-1 opacity-70">Chapter {step.order + 1}</p>
+                  </div>
+                  {isAdmin && !isBlog && (
+                    <Link 
+                      href={isStandalone ? `/admin/modules/${roadmap.id}` : `/admin/roadmaps/${roadmap.id}`} 
+                      target="_blank"
+                      className="ml-auto p-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 shadow-sm transition-all"
+                      title="Edit via Admin"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Link>
+                  )}
+               </div>
             </div>
             
             <div className="flex items-center gap-2 mb-5 px-4">
@@ -702,7 +707,7 @@ export function StepViewer({
                 const isActiveTopic = activeView.topicId === topic.id;
                 const subs = getVirtualSubtopics(topic);
                 return (
-                  <div key={topic.id} className="space-y-1">
+                  <div key={topic.id} className="space-y-0.5">
                     <button
                       onClick={() => {
                         if (viewMode === "CONTINUOUS") {
@@ -715,17 +720,17 @@ export function StepViewer({
                           navigate({ kind: "topic", topicId: topic.id });
                         }
                       }}
-                      className={`w-full flex items-center gap-3.5 px-4 py-3 text-sm text-left rounded-xl transition-all duration-300 group ${isActiveTopic ? "bg-white/60 dark:bg-zinc-800/60 text-primary font-black shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-3xl" : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground font-bold"}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2 text-left rounded-xl transition-all duration-300 group ${isActiveTopic ? "bg-white/60 dark:bg-zinc-800/60 text-primary font-black shadow-lg ring-1 ring-inset ring-white/20 backdrop-blur-3xl" : "text-slate-600 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground font-bold"}`}
                     >
-                      <span className={`w-7 h-7 flex items-center justify-center text-[11px] font-black shrink-0 rounded-lg transition-all duration-300 shadow-sm ${isActiveTopic ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-white/40 dark:bg-zinc-900 border border-white/20 dark:border-white/5 text-muted-foreground/60 group-hover:border-primary/30 group-hover:text-primary group-hover:bg-primary/5"}`}>
-                        {completedItems.includes(topic.id) ? <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 stroke-[4px]" /> : String(i + 1).padStart(2, "0")}
+                      <span className={`w-8 h-8 flex items-center justify-center text-[12px] font-black shrink-0 rounded-xl transition-all duration-300 shadow-sm ${isActiveTopic ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-white/40 dark:bg-zinc-900 border border-white/20 dark:border-white/5 text-muted-foreground/60 group-hover:border-primary/30 group-hover:text-primary group-hover:bg-primary/5"}`}>
+                        {completedItems.includes(topic.id) ? <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400 stroke-[5px]" /> : String(i + 1).padStart(2, "0")}
                       </span>
-                      <span className="flex-1 leading-snug tracking-tight">{topic.title}</span>
+                      <span className="flex-1 leading-tight tracking-tight text-[15px] md:text-[16px]">{topic.title}</span>
                     </button>
 
                     {/* Subtopics sidebar list */}
                     {subs.length > 0 && (
-                      <div className={`ml-8 pl-6 border-l-2 border-slate-200 dark:border-zinc-800 space-y-1 overflow-hidden transition-all duration-500 ${(isActiveTopic || viewMode === "CONTINUOUS") ? "max-h-[1000px] opacity-100 py-2.5" : "max-h-0 opacity-0 py-0"}`}>
+                      <div className={`ml-8 pl-6 border-l-2 border-slate-200 dark:border-zinc-800 space-y-0.5 overflow-hidden transition-all duration-500 ${(isActiveTopic || viewMode === "CONTINUOUS") ? "max-h-[2000px] opacity-100 py-2" : "max-h-0 opacity-0 py-0"}`}>
                         {subs.sort((a, b) => a.order - b.order).map((sub) => (
                           <button
                             key={`${topic.id}-${sub.id}`}
@@ -738,9 +743,9 @@ export function StepViewer({
                                 window.scrollTo({ top: y, behavior: 'smooth' });
                               }
                             }}
-                            className="w-full text-left py-2.5 px-4 text-[14px] md:text-[15px] text-slate-600 dark:text-zinc-400 hover:text-primary transition-all rounded-xl hover:bg-primary/5 flex items-center gap-3.5 font-semibold group/sub"
+                            className="w-full text-left py-2 px-4 text-[14px] text-slate-500 dark:text-zinc-500 hover:text-primary transition-all rounded-xl hover:bg-primary/5 flex items-center gap-3 font-semibold group/sub"
                           >
-                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-zinc-600 group-hover/sub:bg-primary group-hover/sub:scale-150 transition-all shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-zinc-800 group-hover/sub:bg-primary group-hover/sub:scale-150 transition-all shrink-0" />
                             <span className="truncate">{sub.title}</span>
                           </button>
                         ))}
