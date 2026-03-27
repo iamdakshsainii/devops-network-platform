@@ -523,6 +523,16 @@ export function StepViewer({
               )}
               <span className="text-muted-foreground/20 font-light mx-1">/</span>
               <span className="truncate max-w-[150px] md:max-w-xs transition-all" style={{ color: themeColor }}>{step.title}</span>
+              {isAdmin && !isBlog && (
+                <Link 
+                  href={isStandalone ? `/admin/modules?search=${encodeURIComponent(step.title)}` : `/admin/roadmaps?id=${roadmap.id}`} 
+                  target="_blank"
+                  className="ml-2 p-1.5 rounded-lg bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 shadow-sm transition-all animate-in fade-in zoom-in duration-300"
+                  title="Edit Module"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                </Link>
+              )}
               {activeTopic && (
                 <>
                   <span className="text-muted-foreground/30 font-light mx-1">/</span>
@@ -608,9 +618,21 @@ export function StepViewer({
         <aside className={`fixed md:sticky ${isStandalone ? 'top-14 md:top-20' : 'top-[120px] md:top-32'} left-0 z-[150] md:z-10 bg-background md:bg-transparent border-r md:border-r-0 transform transition-transform md:transform-none shadow-2xl md:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${isSidebarCollapsed ? "md:w-0 md:opacity-0 md:pointer-events-none md:p-0" : "w-72 md:w-72 lg:w-80 px-4 py-8"} shrink-0 transition-all duration-300 h-[calc(100vh-120px)] md:h-auto overflow-y-auto`}>
           <div className={isSidebarCollapsed ? "hidden" : "block"}>
             <div className="mb-8 pb-6 border-b">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm shrink-0" style={{ backgroundColor: themeColor }}>{step.icon}</div>
-                <div><h2 className="font-extrabold text-lg leading-tight">{step.title}</h2><p className="text-xs uppercase tracking-wider font-bold text-muted-foreground mt-0.5">Module {step.order + 1}</p></div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm shrink-0" style={{ backgroundColor: themeColor }}>{step.icon}</div>
+                  <div><h2 className="font-extrabold text-lg leading-tight">{step.title}</h2><p className="text-xs uppercase tracking-wider font-bold text-muted-foreground mt-0.5">Module {step.order + 1}</p></div>
+                </div>
+                {isAdmin && !isBlog && (
+                  <Link 
+                    href={isStandalone ? `/admin/modules?search=${encodeURIComponent(step.title)}` : `/admin/roadmaps?id=${roadmap.id}`} 
+                    target="_blank"
+                    className="p-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 shadow-sm transition-all"
+                    title="Edit via Admin"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Link>
+                )}
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
             </div>

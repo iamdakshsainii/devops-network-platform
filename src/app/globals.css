@@ -312,9 +312,21 @@
   color: #1d4ed8 !important;
 }
 
-.devhub-prose blockquote,
+.devhub-prose blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+  padding: 1rem 1.5rem !important;
+  margin: 1.5rem 0 !important;
+  border-radius: 0 0.75rem 0.75rem 0;
+  font-style: italic;
+  font-weight: 500;
+  quotes: none;
+}
+
 .devhub-prose blockquote p {
-  color: #374151 !important;
+  color: #334155 !important;
+  margin: 0 !important;
+  line-height: 1.6 !important;
 }
 
 .dark .devhub-prose,
@@ -341,9 +353,13 @@
   color: #38bdf8 !important;
 }
 
-.dark .devhub-prose blockquote,
+.dark .devhub-prose blockquote {
+  background: hsl(var(--primary) / 0.1);
+  border-left-color: hsl(var(--primary));
+}
+
 .dark .devhub-prose blockquote p {
-  color: #e4e4e7;
+  color: #f1f5f9 !important;
 }
 
 /* ════════════════════════════════════════════════════════════════════
