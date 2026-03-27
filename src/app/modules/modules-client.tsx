@@ -113,7 +113,7 @@ export default function ModulesPageClient({ data }: { data: any[] }) {
 
   return (
     <div
-      className={`w-full mx-auto px-4 py-12 ${sidebarCollapsed ? "max-w-none px-8" : "max-w-7xl"} space-y-12 transition-all duration-300`}
+      className={`w-full ml-0 mr-auto px-6 md:px-12 lg:px-16 py-12 ${sidebarCollapsed ? "max-w-[1500px]" : "max-w-[1450px]"} space-y-12 transition-all duration-300`}
     >
       <div className="flex flex-col items-center text-center space-y-4 max-w-2xl mx-auto">
         <div className="inline-flex items-center rounded-full border bg-muted/30 px-3 py-1 text-xs text-foreground/80 shadow-sm backdrop-blur-md mb-2">
@@ -352,12 +352,16 @@ export default function ModulesPageClient({ data }: { data: any[] }) {
                         </div>
                       )}
 
-                      <CardHeader className="pl-6 w-full pb-4 border-b border-border/5 relative z-10 flex flex-col gap-5">
+                      <CardHeader className="pl-6 w-full pb-3 border-b border-border/5 relative z-10 flex flex-col gap-3">
                         <div className="flex justify-between items-start">
-                          <div className="text-3xl bg-primary/5 p-3.5 rounded-2xl shadow-sm border border-border/10 group-hover:bg-primary/10 group-hover:scale-105 transition-all duration-300">
-                            {mod.icon}
+                          <div className="flex items-center justify-center text-3xl bg-primary/5 w-14 h-14 rounded-2xl shadow-sm border border-border/10 group-hover:bg-primary/10 group-hover:scale-105 transition-all duration-300">
+                            {mod.icon?.startsWith("http") ? (
+                              <img src={mod.icon} alt={mod.title} className="w-8 h-8 object-contain" />
+                            ) : (
+                              <span>{mod.icon || "📦"}</span>
+                            )}
                           </div>
-                          <div className="flex flex-col items-end gap-1.5 pt-1">
+                          <div className="flex flex-col items-end gap-1.5 pt-0.5">
                             {isAdmin && (
                               <Link href={`/admin/modules/${mod.id}`} target="_blank" onClick={(e) => e.stopPropagation()}>
                                 <Button variant="outline" size="sm" className="rounded-full h-8 text-[11px] font-bold gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/20 shadow-sm px-3">
@@ -380,8 +384,8 @@ export default function ModulesPageClient({ data }: { data: any[] }) {
                         </CardTitle>
                       </CardHeader>
 
-                      <CardContent className="pl-6 pt-5 flex-1 flex flex-col min-h-0 w-full mb-auto pb-6 relative z-10 w-full">
-                        <p className="text-sm text-muted-foreground/90 line-clamp-3 mb-6 flex-1 leading-relaxed">
+                      <CardContent className="pl-6 pt-3 flex-1 flex flex-col min-h-0 w-full mb-auto pb-6 relative z-10 w-full">
+                        <p className="text-sm text-muted-foreground/90 line-clamp-3 mb-4 flex-1 leading-relaxed">
                           {mod.description ||
                             "Explore this module to view its curated topics and community resources."}
                         </p>

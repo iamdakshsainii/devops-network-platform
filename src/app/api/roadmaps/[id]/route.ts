@@ -18,6 +18,17 @@ export async function GET(req: Request, context: any) {
           include: {
             topics: { orderBy: { order: "asc" } },
             resources: { orderBy: { order: "asc" } },
+            attachedModules: {
+              include: {
+                module: {
+                  include: {
+                    topics: { orderBy: { order: "asc" } },
+                    resources: { orderBy: { order: "asc" } }
+                  }
+                }
+              },
+              orderBy: { order: "asc" }
+            }
           },
         },
       },

@@ -310,6 +310,48 @@ export function StepViewer({
   const [localSearchOpen, setLocalSearchOpen] = useState(false);
   const [completedItems, setCompletedItems] = useState<string[]>([]);
   const [bookmarkedItems, setBookmarkedItems] = useState<string[]>([]);
+  const [sidebarWidth, setSidebarWidth] = useState(320);
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`sidebarWidth_${step.id}`);
+      if (saved) setSidebarWidth(parseInt(saved));
+    }
+  }, [step.id]);
+
+  const startResizing = useCallback((e: React.PointerEvent) => {
+    setIsResizing(true);
+    e.preventDefault();
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+    localStorage.setItem(`sidebarWidth_${step.id}`, sidebarWidth.toString());
+  }, [sidebarWidth, step.id]);
+
+  const resize = useCallback((e: PointerEvent) => {
+    if (isResizing) {
+      const newWidth = e.clientX;
+      if (newWidth >= 250 && newWidth <= 600) {
+        setSidebarWidth(newWidth);
+      }
+    }
+  }, [isResizing]);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener("pointermove", resize);
+      window.addEventListener("pointerup", stopResizing);
+    } else {
+      window.removeEventListener("pointermove", resize);
+      window.removeEventListener("pointerup", stopResizing);
+    }
+    return () => {
+      window.removeEventListener("pointermove", resize);
+      window.removeEventListener("pointerup", stopResizing);
+    };
+  }, [isResizing, resize, stopResizing]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -496,13 +538,13 @@ export function StepViewer({
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className={`sticky ${isStandalone ? 'top-0' : 'top-16 lg:top-[76px]'} z-[110] bg-background/95 backdrop-blur border-b shadow-sm`}>
+      <div className={`sticky ${isStandalone ? 'top-0' : 'top-16 lg:top-[76px]'} z-[110] bg-white/40 dark:bg-zinc-900/40 backdrop-blur-2xl border-b shadow-sm`}>
         {completionPercentage === 100 && (
           <div className="bg-emerald-500/10 border-b border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest py-1.5 px-4 text-center">
             ðŸ‰ mastery achieved! stay consistent.
           </div>
         )}
-        <div className="flex items-center h-14 gap-4 px-6 overflow-visible text-sm transition-all duration-300 w-full relative">
+        <div className="flex items-center h-16 gap-4 px-6 overflow-visible text-sm transition-all duration-300 w-full relative">
           <button className="md:hidden p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 shrink-0 transition-all active:scale-95" onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -611,14 +653,25 @@ export function StepViewer({
             </div>
           </div>
         </div>
-        <div className="relative h-[5px] w-full bg-muted/20">
-          <div className="absolute inset-y-0 left-0 bg-emerald-500 transition-all duration-700" style={{ width: `${completionPercentage}%` }} />
+        <div className="relative h-1 w-full bg-muted/20">
+          <div className="absolute inset-y-0 left-0 bg-emerald-500 transition-all duration-700 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${completionPercentage}%` }} />
         </div>
       </div>
 
       <div className="flex flex-1 relative w-full px-4 md:px-6 font-sans">
         {sidebarOpen && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] md:hidden" onClick={() => setSidebarOpen(false)} />}
-        <aside className={`fixed md:sticky ${isStandalone ? 'top-14 md:top-20' : 'top-[120px] md:top-32'} left-0 z-[150] md:z-10 bg-background md:bg-transparent border-r md:border-r-0 transform transition-transform md:transform-none shadow-2xl md:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${isSidebarCollapsed ? "md:w-0 md:opacity-0 md:pointer-events-none md:p-0" : "w-72 md:w-72 lg:w-80 px-4 py-8"} shrink-0 transition-all duration-300 h-[calc(100vh-120px)] md:h-auto overflow-y-auto`}>
+        <aside 
+          className={`fixed md:sticky ${isStandalone ? 'top-16 md:top-16' : 'top-16 md:top-16'} left-0 z-[150] md:z-10 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-3xl border-r md:border-r-0 transform transition-transform md:transform-none shadow-2xl md:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${isSidebarCollapsed ? "md:w-0 md:opacity-0 md:pointer-events-none md:p-0" : "px-4 py-8"} shrink-0 transition-all duration-300 h-[calc(100vh-64px)] overflow-y-auto custom-scrollbar`}
+          style={{ width: isSidebarCollapsed ? 0 : sidebarOpen ? '100%' : `${sidebarWidth}px` }}
+        >
+          {/* Resize Handle */}
+          <div 
+            onPointerDown={startResizing}
+            className={`absolute top-0 right-0 w-1.5 h-full cursor-col-resize hidden md:block group z-50 ${isResizing ? 'bg-primary/40' : 'hover:bg-primary/20'}`}
+          >
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-12 bg-border group-hover:bg-primary/40 rounded-full transition-colors ${isResizing ? 'bg-primary' : ''}`} />
+          </div>
+
           <div className={isSidebarCollapsed ? "hidden" : "block"}>
             <div className="mb-8 pb-6 border-b">
               <div className="flex items-center justify-between mb-3">
@@ -662,10 +715,10 @@ export function StepViewer({
                           navigate({ kind: "topic", topicId: topic.id });
                         }
                       }}
-                      className={`w-full flex items-center gap-4 px-4 py-3.5 text-base md:text-[17px] text-left rounded-2xl transition-all duration-300 group ${isActiveTopic ? "bg-primary/10 text-primary font-black shadow-sm ring-1 ring-inset ring-primary/20 backdrop-blur-sm" : "text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800/80 hover:text-foreground font-bold hover:translate-x-1"}`}
+                      className={`w-full flex items-center gap-3.5 px-4 py-3 text-sm text-left rounded-xl transition-all duration-300 group ${isActiveTopic ? "bg-white/60 dark:bg-zinc-800/60 text-primary font-black shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-3xl" : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground font-bold"}`}
                     >
-                      <span className={`w-8 h-8 flex items-center justify-center text-[13px] font-black shrink-0 rounded-xl transition-all duration-300 shadow-sm ${isActiveTopic ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 group-hover:border-primary/30 group-hover:text-primary group-hover:bg-primary/10"}`}>
-                        {completedItems.includes(topic.id) ? <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400 stroke-[4px]" /> : String(i + 1).padStart(2, "0")}
+                      <span className={`w-7 h-7 flex items-center justify-center text-[11px] font-black shrink-0 rounded-lg transition-all duration-300 shadow-sm ${isActiveTopic ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-white/40 dark:bg-zinc-900 border border-white/20 dark:border-white/5 text-muted-foreground/60 group-hover:border-primary/30 group-hover:text-primary group-hover:bg-primary/5"}`}>
+                        {completedItems.includes(topic.id) ? <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 stroke-[4px]" /> : String(i + 1).padStart(2, "0")}
                       </span>
                       <span className="flex-1 leading-snug tracking-tight">{topic.title}</span>
                     </button>

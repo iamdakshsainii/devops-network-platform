@@ -31,6 +31,13 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
           include: { subtopics: { orderBy: { order: "asc" } } },
         },
         resources: { orderBy: { order: "asc" } },
+        moduleAttachments: {
+          include: {
+            step: {
+              include: { roadmap: { select: { id: true, title: true } } }
+            }
+          }
+        }
       },
     });
     if (!step) return NextResponse.json({ message: "Not found" }, { status: 404 });

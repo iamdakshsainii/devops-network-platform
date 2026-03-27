@@ -5,12 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft, ArrowRight, BookOpen, CheckCircle2, ChevronRight,
+  ArrowLeft, ArrowRight, BookOpen, CheckCircle2, ChevronRight, Play,
   Search, Zap, Clock, Trophy, Flame, LayoutGrid, List, Info, Lightbulb,
   Sparkles, Target, Star, ShieldCheck, ZapIcon, Pencil, Settings,
-  Github, Youtube, ExternalLink, Paperclip, FileText, Globe, Box
+  Github, Youtube, ExternalLink, Paperclip, FileText, Globe, Box, Layers
 } from "lucide-react";
 import { BrandIcon } from "@/components/brand-icons";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const getIcon = (iconName: string, title?: string): React.ReactNode => {
    return <BrandIcon name={title || iconName} />;
@@ -150,9 +153,6 @@ export function StepModulesViewer({
           completed,
         }),
       });
-      // No router.refresh() here to keep it snappy. 
-      // The parent stats might be slightly out of sync on the PROGRESS RING, 
-      // so we should calculate local percent too for the complete experience.
     } catch {
       // Revert on failure
       setLocalCompletedIds(prev => 
@@ -186,238 +186,192 @@ export function StepModulesViewer({
       </div>
 
       {/* ── STICKY BREADCRUMB ── */}
-      <div className="sticky top-0 z-[100] border-b bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 max-w-6xl flex items-center h-14 gap-3 text-sm">
-          <Link href="/roadmap" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all">
+      <div className="sticky top-0 z-[100] border-b bg-white/40 dark:bg-zinc-900/40 backdrop-blur-2xl">
+        <div className="container mx-auto px-4 max-w-6xl flex items-center h-14 gap-3 text-xs">
+          <Link href="/roadmap" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all font-black">
             Roadmaps
           </Link>
-          <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
-          <Link href={`/roadmap/${roadmap.id}`} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-            <span className="bg-muted px-1.5 py-0.5 rounded text-[11px]">{roadmap.icon}</span>
-            <span className="hidden sm:inline font-bold">{roadmap.title}</span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground/20" />
+          <Link href={`/roadmap/${roadmap.id}`} className="text-muted-foreground/70 hover:text-foreground transition-all flex items-center gap-2 font-bold">
+            <span className="hidden sm:inline">{roadmap.title}</span>
           </Link>
-          <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
-          <span className="font-black text-foreground truncate flex items-center gap-2">
+          <ChevronRight className="h-4 w-4 text-muted-foreground/20" />
+          <span className="font-black text-foreground truncate flex items-center gap-2 tracking-tight">
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: roadmap.color }} />
             {step.title}
           </span>
         </div>
       </div>
 
-      {/* ── PREMIUM HERO ── */}
-      <div className="relative border-b overflow-hidden pt-6 pb-8 lg:pt-8 lg:pb-10">
-        {/* Subtle Watermark */}
-        <div className="absolute -right-10 -top-10 text-[25rem] opacity-[0.04] dark:opacity-[0.06] font-black pointer-events-none select-none rotate-12">
-          {getIcon(step.icon)}
-        </div>
-
+      {/* ── ELITE MASTERY HERO ── */}
+      <div className="relative border-b overflow-hidden pt-6 pb-12 lg:pt-8 lg:pb-16 bg-gradient-to-b from-background to-muted/5">
+        {/* Atmosphere */}
+        <div className="absolute top-0 right-0 w-[40%] h-full bg-primary/5 blur-3xl rounded-full translate-x-1/2 -z-0 opacity-[0.05] dark:opacity-[0.1]" style={{ backgroundColor: `${roadmap.color}` }} />
+        
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-12 lg:gap-16">
+          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-20">
+            
+            {/* Focus: Learning Data */}
+            <div className="flex-1 space-y-6 animate-in fade-in slide-in-from-left-6 duration-700 w-full">
+              <div
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm"
+                style={{ borderColor: `${roadmap.color}30`, color: roadmap.color, background: `${roadmap.color}05` }}
+              >
+                <Star className="h-3 w-3 fill-current" /> Roadmap Chapter
+              </div>
 
-            {/* Content Left */}
-            <div className="flex-1 space-y-6 animate-in fade-in slide-in-from-left-6 duration-700">
-              <div className="space-y-3">
-                <div
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] border shadow-sm"
-                  style={{ borderColor: `${roadmap.color}30`, color: roadmap.color, background: `linear-gradient(to right, ${roadmap.color}10, transparent)` }}
-                >
-                  <Star className="h-2.5 w-2.5 fill-current" /> {roadmap.title}
-                </div>
-                
-                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border-2 bg-background/50 backdrop-blur-xl shadow-xl relative group transition-all duration-500 hover:rotate-3"
-                    style={{ borderColor: `${roadmap.color}33`, boxShadow: `0 10px 30px -5px ${roadmap.color}22` }}
-                  >
-                    <span className="text-2xl group-hover:scale-110 transition-transform duration-500">{getIcon(step.icon)}</span>
-                  </div>
-                  <div>
-                    <h1 className="text-2xl md:text-4xl font-black tracking-tight text-foreground leading-tight">
-                      {step.title}
-                    </h1>
-                    <p className="text-muted-foreground text-xs md:text-sm mt-1 max-w-xl leading-relaxed font-bold opacity-80">
-                      {step.description}
-                    </p>
-                  </div>
+              <div className="space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                   <div className="w-16 h-16 rounded-3xl flex items-center justify-center text-3xl shrink-0 shadow-2xl border bg-card/40 backdrop-blur-xl group hover:rotate-6 transition-all duration-500" style={{ borderColor: `${roadmap.color}20` }}>
+                      {getIcon(step.icon)}
+                   </div>
+                   <div>
+                      <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-foreground leading-tight">
+                        {step.title}
+                      </h1>
+                      <p className="text-muted-foreground text-sm md:text-base mt-2 max-w-xl font-medium leading-relaxed opacity-80">
+                        {step.description}
+                      </p>
+                   </div>
                 </div>
               </div>
 
-              {/* Badges & Quick Stats */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-3 p-1.5 pr-4 rounded-2xl bg-muted/30 border border-border/50 backdrop-blur-md transition-all hover:bg-muted/50">
-                  {localIsMastered ? (
-                    <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/30">
-                      <Trophy className="h-4 w-4" />
-                    </span>
-                  ) : localIsOnFire ? (
-                    <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
-                      <Flame className="h-4 w-4" />
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary text-white shadow-lg shadow-primary/30">
-                      <Zap className="h-4 w-4" />
-                    </span>
-                  )}
-                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground/70 leading-none mb-1">Status</span>
-                    <span className="text-xs font-black text-foreground">{localIsMastered ? "Step Mastered" : localIsOnFire ? "Learning Path" : "Get Started"}</span>
-                  </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-muted/30 border border-border/40 backdrop-blur-md">
+                   <BookOpen className="h-4 w-4" style={{ color: roadmap.color }} />
+                   <span className="text-sm font-black text-foreground">
+                      {stats.totalModules} Lessons
+                   </span>
                 </div>
-
-                <div className="flex items-center gap-3 p-1.5 pr-4 rounded-2xl bg-muted/30 border border-border/50 backdrop-blur-md transition-all hover:bg-muted/50">
-                   <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-zinc-500/20 text-foreground border border-white/10">
-                      <BookOpen className="h-4 w-4" />
-                    </span>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground/70 leading-none mb-1">Content</span>
-                    <span className="text-xs font-black text-foreground text-nowrap">
-                       {step.attachedModules.length > 0 && !step.title.toLowerCase().includes("project") && !step.title.toLowerCase().includes("capstone") ? (
-                          `${stats.totalModules} Units · ${stats.totalTopics} Topics`
-                       ) : (
-                          `${step.resources?.length || stats.totalTopics || 0} Project Resources`
-                       )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Bar (Neon Style) */}
-              <div className="space-y-3 max-w-md">
-                <div className="flex justify-between items-end">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Mastery Progress</span>
-                  <div className="flex items-center gap-4">
-                     <span className="text-2xl font-black text-foreground tracking-tighter">{localPercent}%</span>
-                     {isAdmin && (
-                        <Link href={`/admin/roadmaps/${roadmap.id}`}>
-                           <button className="h-8 px-3 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary/20 transition-all">
-                              <Pencil className="h-3 w-3" /> Edit Step
-                           </button>
-                        </Link>
-                     )}
-                  </div>
-                </div>
-                <div className="h-4 rounded-full bg-muted/40 p-1 border border-border/10 shadow-inner">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out relative"
-                    style={{
-                      width: mounted ? `${stats.percentComplete}%` : "0%",
-                      background: `linear-gradient(90deg, ${roadmap.color}88, ${roadmap.color})`,
-                      boxShadow: stats.percentComplete > 0 ? `0 0 15px ${roadmap.color}44` : "none",
-                    }}
-                  >
-                     <div className="absolute top-0 right-0 h-full w-8 bg-white/20 blur-md rounded-full animate-shine" />
-                  </div>
-                </div>
+                {isAdmin && (
+                  <Link href={`/admin/roadmaps/${roadmap.id}`}>
+                     <button className="h-10 px-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-amber-500/20 transition-all shadow-sm">
+                        <Pencil className="h-3.5 w-3.5" /> Modify Roadmap
+                     </button>
+                  </Link>
+                )}
               </div>
             </div>
 
-            <div className="shrink-0 flex justify-center lg:block animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
-              <div
-                className="relative overflow-hidden bg-white/40 dark:bg-zinc-900/60 backdrop-blur-[40px] border-2 rounded-[2.5rem] p-6 shadow-2xl flex flex-col items-center gap-4 w-full sm:min-w-[240px] group/card transition-all duration-700 border-white/20 dark:border-white/10"
-              >
-                <div 
-                  className="absolute inset-x-0 top-0 h-1/2 rounded-full blur-[60px] opacity-[0.1] dark:opacity-[0.2]" 
-                  style={{ background: roadmap.color }}
-                />
-                <div className="relative flex items-center justify-center p-3 rounded-full bg-background/50 dark:bg-zinc-950/50 backdrop-blur-xl border border-white/20 dark:border-white/10">
-                  <ProgressRing percent={localPercent} color={localIsMastered ? '#10b981' : roadmap.color} size={110} stroke={8} />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black tracking-tighter text-foreground leading-none">{localPercent}%</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 mt-1">Mastery</span>
+            {/* ── ULTRA-PREMIUM MASTERY HUD (Roadmap Sync) ── */}
+            <div className="shrink-0 animate-in fade-in slide-in-from-right-10 duration-1000 delay-300">
+               <div className="flex items-center gap-6 p-5 md:p-6 rounded-[2rem] bg-background/50 dark:bg-zinc-900/40 border border-white/[0.1] shadow-2xl backdrop-blur-3xl transition-all duration-500 hover:scale-[1.03] group/hud cursor-default">
+                  <div className="relative group/ring transition-transform duration-500 group-hover/hud:translate-x-1">
+                      <ProgressRing
+                        percent={localPercent}
+                        color={localIsMastered ? "#10b981" : roadmap.color}
+                        size={84}
+                        stroke={7}
+                      />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center -space-y-0.5">
+                          <span className="text-xl font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/80">
+                              {localPercent}
+                          </span>
+                          <span className="text-[9px] font-black uppercase text-foreground/40 tracking-tighter">%</span>
+                      </div>
+                      {localIsMastered && (
+                         <div className="absolute inset-0 bg-emerald-500/10 rounded-full animate-ping-slow -z-10" />
+                      )}
                   </div>
-                </div>
- 
-                <div className="grid grid-cols-2 gap-3 w-full relative z-10">
-                  <div className="bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10 p-3 rounded-2xl flex flex-col items-center group/stat transition-colors text-center">
-                    <span className="text-xl font-black text-foreground tabular-nums">{animatedCompleted}</span>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">Done</span>
+
+                  <div className="flex flex-col gap-2.5 min-w-[140px]">
+                      <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 overflow-hidden">
+                              {localIsMastered ? <Trophy className="h-3 w-3 text-emerald-500 shrink-0" /> : <Flame className="h-3 w-3 text-orange-500 shrink-0" />}
+                              <span className={`text-[10px] font-black uppercase tracking-[0.12em] whitespace-nowrap ${localIsMastered ? "text-emerald-500" : "text-foreground/70"}`}>
+                                  {localIsMastered ? "Chapter Perfected" : localPercent > 50 ? "Gain Momentum" : "Keep Forging"}
+                              </span>
+                          </div>
+                          <div className="text-xl font-black tracking-tighter text-foreground uppercase group-hover/hud:text-primary transition-colors duration-500">
+                              {localIsMastered ? "Mastery" : "Pathing"}
+                          </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 pt-2.5 border-t border-white/[0.08]">
+                           <div className="flex flex-col">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80 leading-none mb-1">Status</span>
+                              <div className="flex items-center gap-1.5">
+                                  <div className={`w-1.5 h-1.5 rounded-full ${localIsMastered ? 'bg-emerald-500 animate-pulse' : 'bg-primary'}`} style={{ backgroundColor: localIsMastered ? undefined : roadmap.color }} />
+                                  <span className="text-[11px] font-black text-foreground uppercase tracking-tight">{stats.completedTopics}/{stats.totalTopics || stats.totalModules} Units</span>
+                              </div>
+                           </div>
+                      </div>
                   </div>
-                  <div 
-                    className="border-2 p-3 rounded-2xl flex flex-col items-center shadow-md text-center"
-                    style={{ backgroundColor: `${roadmap.color}10`, borderColor: `${roadmap.color}25` }}
-                  >
-                    <span className="text-xl font-black tabular-nums" style={{ color: roadmap.color }}>
-                      {stats.totalTopics - stats.completedTopics}
-                    </span>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">Left</span>
-                  </div>
-                </div>
-              </div>
+               </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── MAIN CONTENT ── */}
-      <div className="container mx-auto px-4 max-w-6xl py-12 space-y-12">
+      <div className="container mx-auto px-4 max-w-6xl py-8 space-y-10">
 
         {/* Filters & Control Bar */}
         <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center w-full">
           <div className="relative group flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
             <Input
               placeholder="Search curriculum modules..."
               value={searchQuery}
               onChange={(e: any) => setSearchQuery(e.target.value)}
-              className="pl-11 h-14 w-full rounded-2xl bg-card/40 backdrop-blur-xl border-2 border-border/50 focus:border-primary focus:ring-0 text-sm font-bold shadow-sm transition-all"
+              className="pl-12 h-12 w-full rounded-xl bg-white/40 dark:bg-zinc-900/40 backdrop-blur-2xl border-white/20 dark:border-white/5 focus:border-primary/50 text-sm font-bold shadow-sm transition-all placeholder:text-muted-foreground/20"
             />
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center bg-muted/40 backdrop-blur-xl border-2 border-border/50 rounded-2xl p-1 shadow-sm h-14">
+            <div className="flex items-center bg-muted/40 backdrop-blur-xl border border-border/50 rounded-xl p-1 shadow-sm h-12">
               <button 
                 onClick={() => setViewMode("grid")} 
-                className={`w-12 h-full flex items-center justify-center rounded-xl transition-all ${viewMode === "grid" ? "bg-background text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"}`}
+                className={`w-11 h-full flex items-center justify-center rounded-lg transition-all ${viewMode === "grid" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <LayoutGrid className="h-4 w-4" />
               </button>
               <button 
                 onClick={() => setViewMode("list")} 
-                className={`w-12 h-full flex items-center justify-center rounded-xl transition-all ${viewMode === "list" ? "bg-background text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"}`}
+                className={`w-11 h-full flex items-center justify-center rounded-lg transition-all ${viewMode === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <List className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="relative h-14 group">
+            <div className="relative h-12 group">
                <select
                  value={sortBy}
                  onChange={(e) => setSortBy(e.target.value as any)}
-                 className="h-full px-6 rounded-2xl bg-card/40 dark:bg-zinc-900/40 backdrop-blur-xl border-2 border-border/50 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-foreground appearance-none cursor-pointer focus:outline-none focus:border-primary shadow-sm hover:border-border transition-all pr-10"
+                 className="h-full px-5 rounded-xl bg-card/40 dark:bg-zinc-900/40 backdrop-blur-xl border border-border/50 dark:border-white/5 text-[9px] font-black uppercase tracking-widest text-foreground appearance-none cursor-pointer focus:outline-none focus:border-primary/50 shadow-sm transition-all pr-10"
                >
-                 <option value="default" className="bg-background text-foreground">Structure</option>
-                 <option value="az" className="bg-background text-foreground">A → Z</option>
-                 <option value="topics" className="bg-background text-foreground">Topics</option>
+                 <option value="default" className="bg-background">Structure</option>
+                 <option value="az" className="bg-background">A → Z</option>
+                 <option value="topics" className="bg-background">Topics</option>
                </select>
-               <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40 rotate-90 pointer-events-none" />
+               <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40 rotate-90 pointer-events-none" />
             </div>
           </div>
         </div>
 
         {/* ── INTERACTIVE CURRICULUM STRATEGY BANNER ── */}
         <div 
-          className="p-6 rounded-[2.5rem] border-2 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-[40px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] overflow-hidden relative group/banner border-white/20 dark:border-white/5"
+          className="p-6 rounded-[1.5rem] border bg-gradient-to-br from-white/60 to-white/40 dark:from-zinc-900/60 dark:to-zinc-900/40 backdrop-blur-xl shadow-md relative group/banner border-white/20 dark:border-white/5"
         >
-          <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-5 relative z-10">
             <div 
-              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border-2 shadow-lg transition-transform group-hover:rotate-6 duration-500"
-              style={{ backgroundColor: `${roadmap.color}15`, color: roadmap.color, borderColor: `${roadmap.color}33` }}
+              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border shadow-lg transition-transform group-hover:rotate-6 duration-500 bg-background/50"
+              style={{ color: roadmap.color, borderColor: `${roadmap.color}33` }}
             >
-              <Sparkles className="h-6 w-6 fill-current" />
+              <Sparkles className="h-5 w-5 fill-current" />
             </div>
             <div className="space-y-1 text-center md:text-left">
-              <h5 className="text-sm font-black text-foreground uppercase tracking-widest flex items-center justify-center md:justify-start gap-2">
-                Learning Strategy
+              <h5 className="text-[11px] font-black text-foreground uppercase tracking-widest flex items-center justify-center md:justify-start gap-2">
+                <Target className="h-3 w-3" style={{ color: roadmap.color }} /> Strategy
               </h5>
-              <p className="text-sm text-muted-foreground leading-relaxed font-bold tracking-tight max-w-4xl">
-                Mandatory modules are core standards. <span style={{ color: roadmap.color, borderColor: `${roadmap.color}44` }} className="font-black border-b px-0.5">Optional Paths</span> are specializations — master them to distinguish your expertise.
+              <p className="text-[12px] md:text-[13px] text-muted-foreground leading-relaxed font-bold tracking-tight max-w-4xl opacity-80">
+                Mandatory units build core competence. <span style={{ color: roadmap.color }} className="font-black border-b border-current px-0.5">Deep Dives</span> provide specialized expertise — complete them to distinguish your professional skills.
               </p>
             </div>
           </div>
         </div>
 
         {/* ── CONTENT GRID ── */}
-        {/* ── CONTENT GRID / PROJECT DASHBOARD ── */}
         {(() => {
            const isProject = step.title.toLowerCase().includes("project") || step.title.toLowerCase().includes("capstone");
            const hasNoModules = filteredModules.length === 0;
@@ -428,7 +382,7 @@ export function StepModulesViewer({
              return (
                <div className="space-y-12 pb-20 mt-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                     {resources.map((res: any, idx: number) => {
+                     {resources.map((res: any) => {
                         const isGithub = res.url.includes("github.com");
                         const isYoutube = res.url.includes("youtube.com") || res.url.includes("youtu.be");
                         const isDoc = res.type === "DOCUMENTATION" || res.url.includes("medium.com") || res.url.includes("dev.to");
@@ -445,64 +399,70 @@ export function StepModulesViewer({
                         const isDone = localCompletedIds.includes(res.id);
 
                         return (
-                          <div key={res.id} className="group relative flex flex-col p-8 rounded-[3rem] border-2 bg-card/60 backdrop-blur-3xl hover:shadow-2xl hover:border-primary/30 transition-all duration-700 hover:-translate-y-2 border-border/40 overflow-hidden group/pcard">
-                             {/* Floating Atmospheric Glow */}
-                             <div className="absolute -top-20 -right-20 w-44 h-44 rounded-full blur-[80px] opacity-0 group-hover/pcard:opacity-20 transition-opacity duration-1000" style={{ backgroundColor: color }} />
+                          <Card key={res.id} className="group relative flex flex-col items-start border border-border/10 hover:border-primary/30 backdrop-blur-xl bg-card/60 shadow-lg hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1.5 transition-all duration-500 cursor-pointer h-full overflow-hidden">
+                             <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-[100px] opacity-0 group-hover:opacity-30 transition-opacity duration-1000" style={{ backgroundColor: color }} />
                              
-                             <div className="flex items-center justify-between mb-8">
-                                <div className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border ${branding}`}>
-                                   {label}
-                                </div>
-                                <button
-                                   onClick={(e) => {
-                                      e.preventDefault();
-                                      handleToggleResource(res.id, !isDone);
-                                   }}
-                                   className={`group/check flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all ${
-                                      isDone 
-                                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                                      : "bg-muted/30 border-border/40 text-muted-foreground/30 hover:border-emerald-500/30 hover:text-emerald-500"
-                                   }`}
-                                >
-                                   {isDone ? <CheckCircle2 className="h-4 w-4 fill-emerald-500/20" /> : <div className="h-4 w-4 rounded-full border-2 border-current opacity-20" />}
-                                   <span className="text-[10px] font-black uppercase tracking-widest">
-                                      {isDone ? "Project Ready" : "Mark Ready"}
-                                   </span>
-                                </button>
-                             </div>
-
-                             <div className="flex flex-col gap-5 relative z-10 flex-1">
-                                <Icon className={`h-10 w-10 opacity-80 group-hover/pcard:scale-110 group-hover/pcard:rotate-6 transition-transform duration-500 ${isDone ? "text-emerald-500" : ""}`} style={{ color: isDone ? undefined : color }} />
-                                <div className="space-y-2">
-                                   <div className="flex items-start gap-3">
-                                      <h4 className={`text-xl font-black tracking-tight group-hover/pcard:text-primary transition-colors leading-tight ${isDone ? "text-emerald-500/80" : "text-foreground"}`}>
-                                         {res.title}
-                                      </h4>
+                             <CardHeader className="pl-6 w-full pb-3 border-b border-border/5 relative z-10 flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                   <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm ${branding}`}>
+                                      {label}
                                    </div>
-                                   <p className="text-[13px] text-muted-foreground font-bold leading-relaxed line-clamp-3 opacity-80">
-                                      {res.description}
-                                   </p>
-                                </div>
-                             </div>
-
-                             <div className="mt-8 flex gap-3">
-                                <a 
-                                   href={res.url} 
-                                   target="_blank" 
-                                   rel="noreferrer" 
-                                   className="flex-1"
-                                >
-                                   <button className="w-full h-14 rounded-[2rem] bg-muted/40 hover:bg-muted border-2 border-border/50 text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3">
-                                      Explore <ExternalLink className="h-4 w-4" />
+                                   <button
+                                      onClick={(e) => {
+                                         e.stopPropagation();
+                                         handleToggleResource(res.id, !isDone);
+                                      }}
+                                      className={`group/check flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all shadow-md active:scale-90 ${
+                                         isDone 
+                                         ? "bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/20" 
+                                         : "bg-background/80 border-border/40 text-muted-foreground/40 hover:border-emerald-500/50 hover:text-emerald-500"
+                                      }`}
+                                   >
+                                      {isDone ? <CheckCircle2 className="h-4 w-4 fill-white/20" /> : <div className="h-4 w-4 rounded-full border-2 border-current opacity-20" />}
+                                      <span className="text-[10px] font-black uppercase tracking-widest">
+                                         {isDone ? "Ready" : "Complete"}
+                                      </span>
                                    </button>
-                                </a>
-                                {isDone && (
-                                   <div className="w-14 h-14 rounded-[2rem] bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-500 animate-in zoom-in-50 duration-500">
-                                      <Trophy className="h-6 w-6" />
+                                </div>
+
+                                <div className="flex flex-col gap-4">
+                                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border bg-background shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 ${isDone ? "border-emerald-500/30" : "border-border/10"}`}>
+                                      <Icon className={`h-7 w-7 opacity-90 transition-transform duration-500 ${isDone ? "text-emerald-500" : ""}`} style={{ color: isDone ? undefined : color }} />
                                    </div>
-                                )}
-                             </div>
-                          </div>
+                                   <CardTitle 
+                                     className={`text-xl font-black tracking-tight group-hover:text-primary transition-colors leading-tight ${isDone ? "text-emerald-500/80" : ""}`}
+                                     style={{ color: isDone ? undefined : color }}
+                                   >
+                                      {res.title}
+                                   </CardTitle>
+                                </div>
+                             </CardHeader>
+
+                             <CardContent className="pl-6 pt-3 flex-1 flex flex-col min-h-0 w-full mb-auto pb-6 relative z-10">
+                                <p className="text-sm text-muted-foreground/90 line-clamp-3 mb-8 flex-1 leading-relaxed font-bold">
+                                   {res.description}
+                                </p>
+
+                                <div className="mt-auto flex items-center justify-between gap-3 pt-4 border-t border-border/10">
+                                   <a 
+                                      href={res.url} 
+                                      target="_blank" 
+                                      rel="noreferrer" 
+                                      className="flex-1"
+                                      onClick={e => e.stopPropagation()}
+                                   >
+                                      <span className="text-primary text-[11px] font-bold transition-all hover:underline flex items-center gap-2">
+                                         Explore Project <ExternalLink className="h-3.5 w-3.5" />
+                                      </span>
+                                   </a>
+                                   {isDone && (
+                                      <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-in zoom-in-75 duration-700">
+                                         <Trophy className="h-5 w-5" />
+                                      </div>
+                                   )}
+                                </div>
+                             </CardContent>
+                          </Card>
                         );
                      })}
                   </div>
@@ -523,13 +483,14 @@ export function StepModulesViewer({
            return filteredModules.length > 0 ? (
             <div className={viewMode === "grid"
               ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 pb-20 mt-8"
-              : "flex flex-col gap-8 pb-20 mt-8"
-            }>
-              {filteredModules.map((am, idx) => {
+               : "flex flex-col gap-8 pb-20 mt-8"
+             }>
+              {filteredModules.map((am, index) => {
                 const total = am.module._count.topics;
                 const done = am.module.completedCount;
                 const percent = total > 0 ? Math.round((done / total) * 100) : 0;
                 const isCompleted = total > 0 && done >= total;
+                const accentColor = roadmap.color;
   
                 /* ── LIST VIEW (Premium Row) ── */
                 if (viewMode === "list") {
@@ -537,150 +498,157 @@ export function StepModulesViewer({
                     <Link
                       key={am.id}
                       href={`/modules/${am.module.id}?roadmapId=${roadmap.id}&stepId=${step.id}`}
-                      className="group flex flex-col md:flex-row md:items-center gap-8 p-8 rounded-[3.5rem] border-2 bg-card/30 backdrop-blur-2xl hover:shadow-2xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden active:scale-[0.98]"
+                      className="group flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-2xl border bg-card/40 backdrop-blur-xl hover:shadow-xl hover:border-primary/20 transition-all duration-300 relative overflow-hidden active:scale-[0.99]"
                     >
                        <div 
-                          className="absolute inset-0 opacity-0 group-hover:opacity-[0.05] transition-opacity duration-1000"
-                          style={{ background: roadmap.color }}
+                          className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700"
+                          style={{ background: accentColor }}
                        />
-                      <div className="text-5xl w-20 h-20 rounded-[2rem] flex items-center justify-center shrink-0 border-2 shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3 bg-background/50 backdrop-blur-xl"
-                      style={{ borderColor: `${roadmap.color}25` }}
-                    >
-                      {getIcon(am.module.icon || "", am.module.title)}
-                    </div>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex flex-wrap items-center gap-4">
-                          <span className="font-black text-foreground text-lg tracking-tight group-hover:text-primary transition-colors">{am.module.title}</span>
-                          {am.isOptional && (
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-2xl bg-muted border-2 border-border/50 text-muted-foreground">Optional</span>
-                          )}
-                          {isCompleted && (
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/20 text-emerald-600 dark:text-emerald-400">Mastered</span>
-                          )}
-                          {isAdmin && (
-                            <Link href={`/admin/modules/${am.module.id}`}>
-                               <button className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-xl border-border/50 border-2 hover:bg-muted transition-all flex items-center gap-2">
-                                  <Settings className="h-2.5 w-2.5" /> Admin
-                               </button>
-                            </Link>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground font-bold tracking-tight line-clamp-1 opacity-80">{am.module.description}</p>
-                      </div>
-                      <div className="flex items-center gap-8">
-                         <div className="flex flex-col items-end gap-2">
-                            <span className="text-xs font-black text-foreground tracking-widest uppercase opacity-60">{percent}% Completion</span>
-                            <div className="w-40 h-2 rounded-full bg-muted/50 overflow-hidden border border-border/20">
-                               <div className="h-full rounded-full transition-all duration-[1.5s] ease-out-back" style={{ width: `${percent}%`, background: roadmap.color }} />
-                            </div>
+                       <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0 border bg-background/50 backdrop-blur-xl shadow-sm transition-all duration-500 group-hover:scale-105 group-hover:-rotate-2"
+                        style={{ borderColor: `${accentColor}20` }}
+                       >
+                         {getIcon(am.module.icon || "", am.module.title)}
+                       </div>
+                       <div className="flex-1 space-y-1.5 min-w-0">
+                         <div className="flex flex-wrap items-center gap-3">
+                           <span className="font-black text-foreground text-lg tracking-tight group-hover:text-primary transition-colors truncate">{am.module.title}</span>
+                           {am.isOptional && (
+                             <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-muted border border-border/50 text-muted-foreground/60">Optional</span>
+                           )}
+                           {isCompleted && (
+                             <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600">Mastered</span>
+                           )}
                          </div>
-                         <div className="h-16 w-16 rounded-full border-2 border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transform transition-all group-hover:scale-110">
-                            <ArrowRight className="h-7 w-7 text-muted-foreground group-hover:text-white" />
-                         </div>
-                      </div>
+                         <p className="text-[13px] text-muted-foreground font-bold tracking-tight line-clamp-1 opacity-70">{am.module.description}</p>
+                       </div>
+                       <div className="flex items-center gap-6 shrink-0">
+                          <div className="hidden sm:flex flex-col items-end gap-1.5">
+                             <span className="text-[10px] font-black text-foreground/50 tracking-widest uppercase">{percent}% Completion</span>
+                             <div className="w-32 h-1.5 rounded-full bg-muted/50 overflow-hidden border border-border/10">
+                                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${percent}%`, background: accentColor }} />
+                             </div>
+                          </div>
+                          <div className="h-10 w-10 rounded-full border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary transform transition-all group-hover:scale-110">
+                             <ArrowRight className="h-5 w-5 text-muted-foreground/40 group-hover:text-white" />
+                          </div>
+                       </div>
                     </Link>
                   );
                 }
   
-                /* ── GRID VIEW (Mega Cards) ── */
+                /* ── GRID VIEW (Elite Module Library Clone) ── */
+                const cyclingColors = ["#3b82f6", "#f97316", "#8b5cf6", "#10b981", "#ec4899", "#14b8a6"];
+                const cardColor = accentColor || cyclingColors[index % cyclingColors.length];
+
                 return (
                   <div
                     key={am.id}
-                    className="group relative flex flex-col rounded-[2.5rem] border-2 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-[40px] overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-700 hover:border-primary/20 border-white/10 dark:border-white/5"
-                    style={{ borderColor: isCompleted ? "rgba(16,185,129,0.2)" : undefined }}
+                    onClick={() => router.push(`/modules/${am.module.id}?roadmapId=${roadmap.id}&stepId=${step.id}`)}
+                    className="group block h-full cursor-pointer"
                   >
-                    <div className="h-1.5 bg-muted/20 relative overflow-hidden">
-                       <div 
-                         className="h-full transition-all duration-1000" 
-                         style={{ width: `${percent}%`, backgroundColor: roadmap.color, boxShadow: percent > 0 ? `0 0 10px ${roadmap.color}` : 'none' }} 
-                       />
-                    </div>
-   
-                     <div className="relative p-7 flex-1 flex flex-col gap-6">
-                       <div className="flex items-start justify-between">
-                         <div
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center border-2 bg-background/50 backdrop-blur-xl shadow-lg transition-transform duration-500 group-hover:scale-110"
-                          style={{ borderColor: `${roadmap.color}25` }}
-                        >
-                          {getIcon(am.module.icon || "", am.module.title)}
+                    <Card
+                      className={`h-full transition-all duration-500 relative overflow-hidden flex flex-col items-start border border-border/10 hover:border-primary/30 backdrop-blur-xl bg-card/60 shadow-lg hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1.5 group select-none ${
+                        isCompleted
+                          ? "bg-emerald-500/[0.03] border-emerald-500/20 hover:border-emerald-500/40"
+                          : ""
+                      }`}
+                    >
+                      {/* Glowing Backlight Sphere */}
+                      <div
+                        className="absolute -top-16 -right-16 w-36 h-36 rounded-full opacity-0 group-hover:opacity-30 transition-all duration-500 blur-3xl pointer-events-none"
+                        style={{ backgroundColor: cardColor }}
+                      />
+                      {/* Colored top accent bar */}
+                      <div
+                        className="absolute top-0 left-0 right-0 h-1.5 transition-opacity"
+                        style={{
+                          backgroundColor: isCompleted ? "#10b981" : cardColor,
+                          opacity: 0.8,
+                        }}
+                      />
+                      {isCompleted && (
+                        <div className="absolute bottom-4 right-4 opacity-[0.07] pointer-events-none select-none z-0">
+                          <CheckCircle2 className="h-12 w-12 text-emerald-500" />
                         </div>
-                         <div className="flex flex-col items-end gap-2 text-right">
-                            <div className="flex items-center gap-2">
-                              {am.isOptional && (
-                                <span 
-                                  className="text-[8.5px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-md border bg-muted/20 border-border/30 text-muted-foreground/50"
-                                >
-                                  Optional
-                                </span>
-                              )}
-                              <span
-                                className="text-[10px] font-black w-7 h-7 rounded-lg flex items-center justify-center border transition-all"
-                                style={{ backgroundColor: `${roadmap.color}10`, color: roadmap.color, borderColor: `${roadmap.color}20` }}
-                              >
-                                #{idx + 1}
-                              </span>
-                            </div>
-                         </div>
-                       </div>
-   
-                       <div className="space-y-1.5">
-                         <h3 className="font-black text-foreground text-lg tracking-tight leading-tight group-hover:text-primary transition-colors">{am.module.title}</h3>
-                         <p className="text-xs text-muted-foreground font-bold leading-relaxed line-clamp-2 opacity-90">{am.module.description.replace(/Module:/, "")}</p>
-   
-                         {/* Strategist Note (Premium Hint) - Compact Style */}
-                         {am.isOptional && (
-                           <div 
-                             className="mt-2.5 p-2.5 rounded-xl border relative transition-all bg-white/30 dark:bg-zinc-950/20 backdrop-blur-md border-white/20 dark:border-white/5"
-                           >
-                              <div className="flex items-start gap-2">
-                                 <div className="w-1 h-1 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: roadmap.color }} />
-                                 <p className="text-[10.5px] font-bold leading-tight text-foreground/70 lowercase">
-                                   <span className="uppercase text-[8.5px] opacity-40 mr-1.5 text-muted-foreground">Why Optional?</span>
-                                   {am.optionalDescription || "deep-dive specialization recommended for advanced operational mastery."}
-                                 </p>
-                              </div>
-                           </div>
-                         )}
-                       </div>
-   
-                       <div className="mt-auto pt-4 space-y-6">
-                       <div className="flex items-center justify-between">
-                           <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-wider text-muted-foreground/40">
-                             <span className="flex items-center gap-1.5"><BookOpen className="h-3 w-3" /> {am.module._count.topics} Steps</span>
-                             <span className="flex items-center gap-1.5 border-l border-border/20 pl-3"><Clock className="h-3 w-3" /> {am.module.readTime}m</span>
-                           </div>
-                           <div className="text-right">
-                              <span className="text-sm font-black text-foreground tabular-nums tracking-tighter" style={{ color: roadmap.color }}>
-                                {am.module.completedCount}<span className="text-[10px] opacity-25 mx-0.5">/</span>{am.module._count.topics}
-                              </span>
-                           </div>
-                         </div>
-   
-                         <Link href={`/modules/${am.module.id}?roadmapId=${roadmap.id}&stepId=${step.id}`} className="block">
-                           <button
-                             className="w-full h-14 rounded-3xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden relative group/btn"
-                             style={isCompleted
-                               ? { backgroundColor: "rgba(16,185,129,0.08)", border: "2px solid rgba(16,185,129,0.2)", color: "#16a34a" }
-                               : { backgroundColor: roadmap.color, border: "2px solid transparent", color: "#fff", boxShadow: `0 10px 20px -5px ${roadmap.color}66` }
-                             }
-                           >
-                              <span className="relative z-10 flex items-center justify-center gap-3">
-                                {isCompleted ? "✓ Review" : am.module.completedCount > 0 ? "Continue" : "Start"}
-                              </span>
-                           </button>
-                         </Link>
-   
-                         {isAdmin && (
-                           <div className="pt-2 border-t border-border/10">
-                              <Link href={`/admin/modules/${am.module.id}`}>
-                                <button className="w-full h-10 rounded-2xl bg-muted/30 border border-border/20 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all flex items-center justify-center gap-2">
-                                  <Settings className="h-3 w-3" /> System Configuration
-                                </button>
+                      )}
+
+                      <CardHeader className="pl-6 w-full pb-3 border-b border-border/5 relative z-10 flex flex-col gap-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center justify-center text-3xl bg-primary/5 w-14 h-14 rounded-2xl shadow-sm border border-border/10 group-hover:bg-primary/10 group-hover:scale-105 transition-all duration-300 overflow-hidden">
+                            {getIcon(am.module.icon || "", am.module.title)}
+                          </div>
+                          <div className="flex flex-col items-end gap-1.5 pt-0.5">
+                            {isAdmin && (
+                              <Link href={`/admin/modules/${am.module.id}`} target="_blank" onClick={(e) => e.stopPropagation()}>
+                                <Button variant="outline" size="sm" className="rounded-full h-8 text-[11px] font-bold gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/20 shadow-sm px-3">
+                                  <Pencil className="h-3 w-3" /> Edit
+                                </Button>
                               </Link>
-                           </div>
-                         )}
-                       </div>
-                     </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                               {am.isOptional && (
+                                  <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-widest rounded-md border-border/30 text-muted-foreground/80 bg-background/40 backdrop-blur-sm px-2 py-0.5">
+                                     Optional
+                                  </Badge>
+                               )}
+                               <Badge
+                                 variant="outline"
+                                 className="text-[10px] font-black w-6 h-6 rounded-md flex items-center justify-center p-0"
+                                 style={{ backgroundColor: `${cardColor}10`, color: cardColor, borderColor: `${cardColor}20` }}
+                               >
+                                 #{index + 1}
+                               </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <CardTitle className="text-xl text-foreground group-hover:text-primary transition-colors font-black leading-snug tracking-tight mb-1 min-h-[3rem] flex items-center">
+                          {am.module.title}
+                        </CardTitle>
+                      </CardHeader>
+
+                      <CardContent className="pl-6 pt-3 flex-1 flex flex-col min-h-0 w-full mb-auto pb-6 relative z-10 w-full">
+                        <p className="text-sm text-muted-foreground/90 line-clamp-3 mb-4 flex-1 leading-relaxed font-bold opacity-70">
+                          {am.module.description || "Explore this module to view its curated topics and community resources."}
+                        </p>
+
+                        {am.module.tags && (
+                          <div className="flex flex-wrap gap-1.5 mt-auto mb-5">
+                            {am.module.tags
+                              .split(",")
+                              .filter(Boolean)
+                              .map((t: string) => (
+                                <div
+                                  key={t}
+                                  className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-colors"
+                                  style={{ color: cardColor, borderColor: `${cardColor}20`, backgroundColor: `${cardColor}10`, border: "1px solid" }}
+                                >
+                                  {t.trim()}
+                                </div>
+                              ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-4 pt-4 border-t border-border/10">
+                          <div className="flex items-center gap-1.5">
+                            <BookOpen className="h-3.5 w-3.5 text-muted-foreground/50" />
+                            <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground/70">
+                              {am.module._count?.topics || 0} Lessons
+                            </span>
+                          </div>
+                          {(am.module._count?.resources || 0) > 0 && (
+                             <div className="flex items-center gap-1.5 border-l border-border/10 pl-4">
+                               <Layers className="h-3.5 w-3.5 text-muted-foreground/50" />
+                               <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground/70">
+                                 {am.module._count.resources} Resources
+                               </span>
+                             </div>
+                          )}
+                          <span className="ml-auto text-primary text-[11px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1">
+                             Learn <ArrowRight className="h-3 w-3" />
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 );
               })}
