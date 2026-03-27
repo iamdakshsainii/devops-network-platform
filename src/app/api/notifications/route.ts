@@ -6,10 +6,11 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
+    if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+    const userId = (session.user as any).id;
 
     const notifications = await prisma.notification.findMany({
-      where: { userId: session.user.id },
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: 20
     });
@@ -23,18 +24,19 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return new NextResponse("Unauthorized", { status: 401 });
+    if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+    const userId = (session.user as any).id;
 
     const { id } = await req.json().catch(() => ({ id: "ALL" }));
 
     if (id === "ALL") {
       await prisma.notification.updateMany({
-        where: { userId: session.user.id, isRead: false },
+        where: { userId, isRead: false },
         data: { isRead: true }
       });
     } else {
       await prisma.notification.update({
-        where: { id: id, userId: session.user.id },
+        where: { id: id, userId },
         data: { isRead: true }
       });
     }

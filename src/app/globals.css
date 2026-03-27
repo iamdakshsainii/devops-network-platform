@@ -108,6 +108,135 @@
     backdrop-filter: blur(14px) saturate(120%);
     -webkit-backdrop-filter: blur(14px) saturate(120%);
   }
+
+  /* 💎 Premium Glassmorphism */
+  .glass {
+    @apply bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl;
+  }
+  .glass-strong {
+    @apply bg-white/70 dark:bg-zinc-950/80 backdrop-blur-2xl border border-white/30 dark:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.15)];
+  }
+
+  /* ✨ Gradient Text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-primary via-blue-500 to-indigo-600 font-black tracking-tighter;
+  }
+  .gradient-text-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-amber-200 via-amber-500 to-amber-700 font-bold;
+  }
+
+  /* 🌌 Animated Patterns */
+  .bg-grid {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.5) 1px, transparent 1px);
+  }
+  .bg-dot {
+    background-size: 24px 24px;
+    background-image: radial-gradient(circle, hsl(var(--border) / 0.8) 1.5px, transparent 1px);
+  }
+
+  /* 🌊 Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-primary/40 transition-colors;
+  }
+}
+
+/* 🎭 GPU Accelerated Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-15px) rotate(1deg); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30px) scale(1.05); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tilt {
+  0%, 100% { transform: rotate3d(0, 0, 0, 0deg); }
+  25% { transform: rotate3d(0.5, 1, 0, 2deg); }
+  75% { transform: rotate3d(-0.5, -1, 0, 2deg); }
+}
+
+@keyframes reveal {
+  0% { clip-path: inset(0 100% 0 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.animate-shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); background-size: 200% 100%; animation: shimmer 2.5s infinite linear; }
+.animate-float { animation: float 5s ease-in-out infinite; will-change: transform; }
+.animate-float-slow { animation: float-slow 10s ease-in-out infinite; will-change: transform; }
+.animate-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-scale-in { animation: scale-in 0.5s ease-out forwards; }
+.animate-fade-in { animation: fade-in 1.2s ease-out forwards; }
+.animate-tilt { animation: tilt 10s linear infinite; }
+.animate-reveal { animation: reveal 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-1000 { animation-delay: 1000ms; }
+
+/* 🧠 Enhanced Shadow System */
+.shadow-premium {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+.shadow-glow-primary { box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.4); }
+.shadow-glow-emerald { box-shadow: 0 0 40px -10px rgba(16, 185, 129, 0.4); }
+
+/* 📱 Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════

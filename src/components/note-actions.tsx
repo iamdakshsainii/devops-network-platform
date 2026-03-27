@@ -15,7 +15,7 @@ interface NoteActionsProps {
 }
 
 export function NoteActions({ itemId, itemType, initialUpvoteCount, hasUpvoted, hasBookmarked }: NoteActionsProps) {
-  const { data: session } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   const [upvoted, setUpvoted] = useState(hasUpvoted);
@@ -24,7 +24,7 @@ export function NoteActions({ itemId, itemType, initialUpvoteCount, hasUpvoted, 
   const [loading, setLoading] = useState<{ upvote: boolean, bookmark: boolean }>({ upvote: false, bookmark: false });
 
   const handleAction = async (action: "upvote" | "bookmark") => {
-    if (!session) {
+    if (status !== "authenticated") {
       router.push("/login");
       return;
     }

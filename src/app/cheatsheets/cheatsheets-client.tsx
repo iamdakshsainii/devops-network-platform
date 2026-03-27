@@ -13,7 +13,7 @@ const CATEGORIES = ["ALL", "Linux", "Docker", "Kubernetes", "Git", "Terraform", 
 
 export function CheatsheetsClient({ initialData }: { initialData: any[] }) {
   const { data: session } = useSession();
-  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role));
+  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role));
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("ALL");

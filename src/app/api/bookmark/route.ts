@@ -6,7 +6,8 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id)
+    const userId = session?.user && (session.user as any).id;
+    if (!userId)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const { itemId, itemType, remindMe } = await req.json();
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Missing itemId or itemType" }, { status: 400 });
 
     const whereClause = {
-      userId: session.user.id,
+      userId: userId,
       itemType,
       ...(itemType === "NOTE" ? { noteId: itemId } :
         itemType === "MODULE" ? { stepId: itemId } :
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     // --- Create new bookmark ---
     const created = await prisma.bookmark.create({
       data: {
-        userId: session.user.id,
+        userId: userId,
         itemType,
         remindMe: Boolean(remindMe),
         noteId: itemType === "NOTE" ? itemId : null,
@@ -73,7 +74,8 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id)
+    const userId = session?.user && (session.user as any).id;
+    if (!userId)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
@@ -85,7 +87,7 @@ export async function GET(req: Request) {
 
     const bookmark = await prisma.bookmark.findFirst({
       where: {
-        userId: session.user.id,
+        userId: userId,
         itemType,
         ...(itemType === "NOTE" ? { noteId: itemId } :
           itemType === "MODULE" ? { stepId: itemId } :

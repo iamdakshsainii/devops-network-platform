@@ -14,6 +14,7 @@ export default async function RoadmapDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
 
   const session = await getServerSession(authOptions);
+  const userId = (session?.user as any)?.id;
   const [roadmap, progress] = await Promise.all([
     prisma.roadmap.findUnique({
       where: { id },
@@ -38,11 +39,12 @@ export default async function RoadmapDetailPage({ params }: { params: Promise<{ 
         }
       }
     }),
-    session?.user?.id ? prisma.userProgress.findMany({ where: { userId: session.user.id } }) : []
+    userId ? prisma.userProgress.findMany({ where: { userId } }) : []
   ]);
 
   const completedItemIds = new Set(progress.map((p: any) => p.itemId));
-  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role));
+  const role = (session?.user as any)?.role as string;
+  const isAdmin = !!(userId && ["ADMIN", "SUPER_ADMIN"].includes(role));
 
   if (!roadmap || roadmap.status !== "PUBLISHED") notFound();
 

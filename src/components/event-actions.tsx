@@ -12,7 +12,7 @@ interface EventActionsProps {
 }
 
 export function EventActions({ eventId, isPast = false }: EventActionsProps) {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const router = useRouter();
 
     const [saved, setSaved] = useState(false);
@@ -20,9 +20,8 @@ export function EventActions({ eventId, isPast = false }: EventActionsProps) {
     const [loadingSave, setLoadingSave] = useState(false);
     const [loadingRemind, setLoadingRemind] = useState(false);
 
-    // Fetch current bookmark state for this event
     useEffect(() => {
-        if (!session?.user?.id) return;
+        if (status !== "authenticated" || !session?.user) return;
         fetch(`/api/bookmark?itemId=${eventId}&itemType=EVENT`)
             .then((r) => r.json())
             .then((data) => {
@@ -30,10 +29,10 @@ export function EventActions({ eventId, isPast = false }: EventActionsProps) {
                 setRemindMe(data.remindMe ?? false);
             })
             .catch(() => { });
-    }, [eventId, session?.user?.id]);
+    }, [eventId, session?.user, status]);
 
     const handleSave = async () => {
-        if (!session) { router.push("/login"); return; }
+        if (status !== "authenticated") { router.push("/login"); return; }
         setLoadingSave(true);
         try {
             const res = await fetch("/api/bookmark", {
@@ -53,7 +52,7 @@ export function EventActions({ eventId, isPast = false }: EventActionsProps) {
     };
 
     const handleRemindMe = async () => {
-        if (!session) { router.push("/login"); return; }
+        if (status !== "authenticated") { router.push("/login"); return; }
         if (isPast) return; // no reminders for past events
 
         setLoadingRemind(true);

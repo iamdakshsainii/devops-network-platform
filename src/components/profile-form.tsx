@@ -9,7 +9,7 @@ import { Loader2, Save, Github, Twitter, Linkedin, Award, User, FileText } from 
 
 export function ProfileForm({ initialData }: { initialData: any }) {
   const router = useRouter();
-  const { update } = useSession();
+  const { data: session } = useSession();
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     fullName: initialData.fullName || "",
@@ -65,8 +65,7 @@ export function ProfileForm({ initialData }: { initialData: any }) {
 
       if (!res.ok) throw new Error("Save failed");
       
-      // Force NextAuth to re-run the session callback (which now fetches fresh from DB)
-      await update();
+      // Synchronize UI
       
       alert("Profile updated successfully!");
       router.refresh(); 

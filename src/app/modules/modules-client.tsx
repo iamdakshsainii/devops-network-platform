@@ -22,7 +22,7 @@ import { Edit } from "lucide-react";
 export default function ModulesPageClient({ data }: { data: any[] }) {
   const router = useRouter();
   const { data: session } = useSession();
-  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role));
+  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role));
 
   const [search, setSearch] = useState("");
   const [selectedRoadmap, setSelectedRoadmap] = useState<string | null>(null);

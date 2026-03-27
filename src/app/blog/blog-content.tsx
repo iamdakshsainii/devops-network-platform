@@ -11,7 +11,6 @@ import Link from "next/link";
 
 import { parseMarkdown } from "@/lib/markdown";
 
-
 function wireCopyButtons() {
   document.querySelectorAll<HTMLButtonElement>(".devhub-copy-btn").forEach((btn) => {
     if (btn.dataset.wired) return;
@@ -33,7 +32,8 @@ function wireCopyButtons() {
 import { StepViewer } from "@/components/step-viewer";
 
 export function BlogContent({ post, initialComments }: { post: any; initialComments: any[] }) {
-  const { data: session } = useSession();
+  const { status } = useSession();
+  const isSignedIn = status === "authenticated";
   const [likes, setLikes] = useState(post.likeCount);
   const [hasLiked, setHasLiked] = useState(false);
   const [comments, setComments] = useState(initialComments);
@@ -180,7 +180,7 @@ export function BlogContent({ post, initialComments }: { post: any; initialComme
       <div className="space-y-6" id="comments">
          <h3 className="text-xl font-bold">{comments.length} Comments</h3>
 
-         {session ? (
+         {isSignedIn ? (
              <form onSubmit={handleComment} className="space-y-3">
                  <textarea value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Leave a comment..." className="w-full p-3 bg-muted/10 border border-border/20 rounded-xl text-sm h-24 font-medium" />
                  <Button type="submit" disabled={isSubmitting || !commentText.trim()} size="sm" className="gap-1.5 h-8">Post Comment</Button>

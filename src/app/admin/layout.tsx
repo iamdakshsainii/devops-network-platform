@@ -6,12 +6,13 @@ import { Shield, LayoutDashboard, FileText, Database, Calendar, Users, Map, Shie
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role as string;
 
-  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(role)) {
     redirect("/dashboard");
   }
 
-  const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+  const isSuperAdmin = role === "SUPER_ADMIN";
 
   return (
     <div className="w-full px-6 py-8 flex flex-col md:flex-row gap-8 min-h-[calc(100vh-4rem)]">

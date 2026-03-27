@@ -1,18 +1,46 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { 
+  ChevronRight, 
+  ChevronLeft, 
+  CheckCircle2, 
+  Circle, 
+  ExternalLink, 
+  Play, 
+  FileText, 
+  BookOpen,
+  ArrowRight,
+  Sparkles,
+  Info,
+  Clock,
+  Shield,
+  Plus,
+  Youtube,
+  Download,
+  Link as LinkIcon,
+  ArrowLeft,
+  Menu,
+  X,
+  Map,
+  ChevronDown,
+  Library,
+  Heart,
+  Twitter,
+  Linkedin,
+  Copy,
+  Search,
+  Bookmark,
+  Check,
+  Edit
+} from "lucide-react";
 
 import { marked } from "marked";
 import hljs from "highlight.js";
-import {
-  FileText, Youtube, BookOpen,
-  Download, Link as LinkIcon, ArrowLeft, ArrowRight,
-  Menu, X, Map, ChevronDown, ChevronRight, ChevronLeft, Library, Heart, Twitter, Linkedin, Copy, Search, Bookmark, Check, Edit
-} from "lucide-react";
-import { useSession } from "next-auth/react";
 import { ResourceCard } from "@/components/resource-card";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -145,15 +173,27 @@ function getVirtualSubtopics(topic: Topic): Subtopic[] {
 
   const virtual: Subtopic[] = [];
   const lines = (topic.content || "").split("\n");
+  const seenIds = new Set<string>();
   
   lines.forEach((line, idx) => {
     const trimmed = line.trim();
     if (trimmed.startsWith("### ")) {
       const title = trimmed.replace(/^###\s*/, "").trim();
+      let slug = slugify(title);
+      
+      // Handle duplicates by appending counter
+      let finalId = slug;
+      let counter = 1;
+      while (seenIds.has(finalId)) {
+        finalId = `${slug}-${counter}`;
+        counter++;
+      }
+      seenIds.add(finalId);
+
       virtual.push({
-        id: slugify(title),
+        id: finalId,
         title,
-        content: "", // Content not needed for sidebar
+        content: "",
         order: idx
       });
     }
@@ -610,7 +650,7 @@ export function StepViewer({
                       <div className={`ml-8 pl-6 border-l-2 border-slate-200 dark:border-zinc-800 space-y-1 overflow-hidden transition-all duration-500 ${(isActiveTopic || viewMode === "CONTINUOUS") ? "max-h-[1000px] opacity-100 py-2.5" : "max-h-0 opacity-0 py-0"}`}>
                         {subs.sort((a, b) => a.order - b.order).map((sub) => (
                           <button
-                            key={sub.id}
+                            key={`${topic.id}-${sub.id}`}
                             onClick={() => {
                               // For virtual subtopics, we scroll directly to the slugified ID
                               const el = document.getElementById(sub.id);

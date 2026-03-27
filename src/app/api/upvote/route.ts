@@ -6,13 +6,14 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const userId = (session?.user as any)?.id;
+    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const { itemId, itemType } = await req.json();
 
     const existing = await prisma.upvote.findFirst({
       where: { 
-         userId: session.user.id, 
+         userId,
          itemType, 
          ...(itemType === "NOTE" ? { noteId: itemId } : itemType === "MODULE" ? { stepId: itemId } : { resourceId: itemId }) 
       }
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     } else {
       await prisma.upvote.create({
         data: {
-          userId: session.user.id,
+          userId,
           itemType,
           noteId: itemType === "NOTE" ? itemId : null,
           resourceId: itemType === "RESOURCE" ? itemId : null,

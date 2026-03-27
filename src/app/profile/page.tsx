@@ -10,12 +10,14 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
   
-  if (!session?.user?.id) {
+  if (!session?.user) {
     redirect("/login");
   }
 
+  const userId = (session.user as any).id;
+
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
   });
 
   if (!user) {
@@ -23,7 +25,7 @@ export default async function ProfilePage() {
   }
 
   const existingRequest = await prisma.adminRequest.findFirst({
-    where: { userId: session.user.id, status: "PENDING" }
+    where: { userId: userId, status: "PENDING" }
   });
 
   return (

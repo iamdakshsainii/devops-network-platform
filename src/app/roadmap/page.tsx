@@ -16,7 +16,8 @@ export default async function RoadmapPage({
 }) {
   const { q = "", sort = "newest", steps = "all" } = await searchParams;
   const session = await getServerSession(authOptions);
-  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role));
+  const role = (session?.user as any)?.role as string;
+  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes(role));
 
   const where: any = { status: "PUBLISHED" };
 

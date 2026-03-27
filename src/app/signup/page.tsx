@@ -1,167 +1,131 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Terminal } from "lucide-react";
-import { useEffect } from "react";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, Loader2, Mail, Lock, User, Terminal } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import ParticleBackground from "@/components/marketing/ParticleBackground"
+import { toast } from "sonner"
 
 export default function SignupPage() {
-  const router = useRouter();
-  const { status } = useSession();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/dashboard");
-    }
-  }, [status, router]);
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({ fullName: "", email: "", password: "" })
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+    e.preventDefault()
+    setLoading(true)
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password }),
-      });
+        body: JSON.stringify(formData),
+      })
 
-      const data = await res.json();
+      const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      // Automatically sign in the user after successful registration
-      const signInResult = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (signInResult?.error) {
-        throw new Error(signInResult.error);
+      if (res.ok) {
+        toast.success("Welcome! Your account has been created.")
+        router.push("/login?callbackUrl=/dashboard")
       } else {
-        router.push("/dashboard");
-        router.refresh();
+        toast.error(data.message || "Registration failed")
       }
-    } catch (err: any) {
-      setError(err.message);
-      setLoading(false);
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 relative overflow-hidden">
-      {/* Dynamic Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background">
+      <ParticleBackground />
       
-      <Card className="w-full max-w-md bg-background/60 backdrop-blur-xl border-border/50 shadow-2xl relative z-10">
-        <CardHeader className="space-y-3 text-center pb-6">
-          <div className="mx-auto h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 mb-2">
-            <Terminal className="h-6 w-6 text-primary" />
-          </div>
-          <CardTitle className="text-3xl font-black tracking-tight">Create an account</CardTitle>
-          <CardDescription className="text-base text-muted-foreground/80">
-            Join the community and build real infrastructure
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-5">
-            {error && (
-              <div className="p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-sm font-medium flex items-center gap-2">
-                <span className="h-4 w-4 flex items-center justify-center rounded-full bg-red-500/20 text-xs">!</span>
-                {error}
-              </div>
-            )}
-            <div className="space-y-2.5">
-              <label className="text-sm font-semibold text-foreground/90" htmlFor="name">Full Name</label>
-              <Input
-                id="name"
-                placeholder="Senior Engineer"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="h-11 bg-background/50 border-border/50 focus-visible:ring-primary/50"
-              />
-            </div>
-            <div className="space-y-2.5">
-              <label className="text-sm font-semibold text-foreground/90" htmlFor="email">Email Address</label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="developer@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-11 bg-background/50 border-border/50 focus-visible:ring-primary/50"
-              />
-            </div>
-            <div className="space-y-2.5">
-              <label className="text-sm font-semibold text-foreground/90" htmlFor="password">Password</label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="h-11 bg-background/50 border-border/50 focus-visible:ring-primary/50"
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-5 pt-2">
-            <Button type="submit" className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/20" disabled={loading}>
-              {loading ? "Creating account..." : "Join the Network"}
-            </Button>
-            
-            <div className="relative w-full py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border/60" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase font-bold tracking-widest">
-                <span className="bg-background/80 backdrop-blur-sm px-3 text-muted-foreground/60 rounded-full">
-                  Or continue with
-                </span>
-              </div>
-            </div>
+      <div className="absolute top-[10%] left-[15%] w-[300px] h-[300px] bg-primary/20 rounded-full blur-[100px] animate-float-slow opacity-60" />
+      <div className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[120px] animate-float-slow delay-500 opacity-40" />
+      
+      <div className="w-full max-w-[420px] relative z-10 animate-slide-up">
+        <Link 
+          href="/" 
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-all group mb-8"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Back to home
+        </Link>
 
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full h-11 gap-2 border-border/60 hover:bg-muted/50 transition-colors cursor-pointer" 
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-              Sign up with Google
-            </Button>
-            
-            <div className="text-center text-sm font-medium text-muted-foreground pt-2">
-              Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline font-bold transition-all hover:text-primary/80">
-                Log in
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+        <div className="glass-strong border border-white/20 dark:border-white/5 p-8 rounded-3xl shadow-2xl space-y-8">
+           <div className="space-y-2 text-center">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                 <Terminal className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-3xl font-black tracking-tight gradient-text leading-tight">Join the Network</h1>
+              <p className="text-muted-foreground font-medium text-sm">Become part of the global DevOps community.</p>
+           </div>
+
+           <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Full Name</label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                    <input 
+                       type="text"
+                       required
+                       autoFocus
+                       placeholder="Daksh Saini"
+                       className="w-full h-11 bg-white/5 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-xl pl-12 pr-4 outline-none focus:border-primary/50 transition-all font-medium text-sm"
+                       value={formData.fullName}
+                       onChange={e => setFormData({...formData, fullName: e.target.value})}
+                    />
+                  </div>
+              </div>
+
+              <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Email Address</label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                    <input 
+                       type="email"
+                       required
+                       placeholder="you@example.com"
+                       className="w-full h-11 bg-white/5 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-xl pl-12 pr-4 outline-none focus:border-primary/50 transition-all font-medium text-sm"
+                       value={formData.email}
+                       onChange={e => setFormData({...formData, email: e.target.value})}
+                    />
+                  </div>
+              </div>
+
+              <div className="space-y-1.5 pb-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Secure Password</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                    <input 
+                       type="password"
+                       required
+                       placeholder="••••••••"
+                       className="w-full h-11 bg-white/5 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-xl pl-12 pr-4 outline-none focus:border-primary/50 transition-all font-medium text-sm"
+                       value={formData.password}
+                       onChange={e => setFormData({...formData, password: e.target.value})}
+                    />
+                  </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full h-12 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 rounded-xl font-black text-sm tracking-widest uppercase flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Initiate Account"}
+              </Button>
+           </form>
+
+           <div className="pt-4 border-t border-white/10 flex items-center justify-center gap-2">
+              <span className="text-xs font-bold text-muted-foreground">Already have an account?</span>
+              <Link href="/login" className="text-xs font-black text-primary uppercase tracking-wider hover:underline underline-offset-4">Log In</Link>
+           </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

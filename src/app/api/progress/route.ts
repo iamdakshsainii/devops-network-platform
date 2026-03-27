@@ -5,13 +5,14 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const userId = session?.user && (session.user as any).id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const progress = await prisma.userProgress.findMany({
-      where: { userId: session.user.id },
+      where: { userId: userId },
     });
     return NextResponse.json(progress);
   } catch (error) {
@@ -21,7 +22,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const userId = session?.user && (session.user as any).id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -40,7 +42,7 @@ export async function POST(request: Request) {
       // Delete parent + all related subtopic records atomically
       await prisma.userProgress.deleteMany({
         where: {
-          userId: session.user.id,
+          userId: userId,
           itemId: { in: [itemId, ...(subtopicIds ?? [])] },
         },
       });
@@ -52,7 +54,7 @@ export async function POST(request: Request) {
     // Read streak state before opening transaction
     const user = await prisma.user.findUnique({
       select: { streak: true, streakLastUpdate: true },
-      where: { id: session.user.id },
+      where: { id: userId },
     });
 
     let streak = user?.streak ?? 0;
@@ -85,14 +87,14 @@ export async function POST(request: Request) {
 
       for (const { id, type } of allIds) {
         await tx.userProgress.upsert({
-          where: { userId_itemId: { userId: session.user.id, itemId: id } },
+          where: { userId_itemId: { userId: userId, itemId: id } },
           update: { completed: true },
-          create: { userId: session.user.id, itemId: id, itemType: type, completed: true },
+          create: { userId: userId, itemId: id, itemType: type, completed: true },
         });
       }
 
       await tx.user.update({
-        where: { id: session.user.id },
+        where: { id: userId },
         data: { streak, streakLastUpdate: now },
       });
     });

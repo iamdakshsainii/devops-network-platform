@@ -16,9 +16,15 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session?.user) {
     redirect("/login");
   }
+
+  const userId = (session.user as any).id;
+  const role = (session.user as any).role || "MEMBER";
+  const name = session.user.name || session.user.email?.split("@")[0];
+  const email = session.user.email;
+  const image = session.user.image;
 
   // Fetch standard components
   const announcements = await prisma.announcement.findMany({ where: { isPinned: true }, orderBy: { createdAt: "desc" } });
@@ -32,19 +38,19 @@ export default async function DashboardPage() {
       author: { select: { fullName: true } },
       _count: { select: { upvotes: true } },
       upvotes: {
-        where: { userId: session.user.id },
+        where: { userId },
         select: { id: true }
       }
     }
   });
 
   const upcomingEvents = await prisma.event.findMany({ where: { startTime: { gte: new Date() }, status: "PUBLISHED" }, orderBy: { startTime: "asc" }, take: 3 });
-  const mySubmissions = await prisma.event.findMany({ where: { authorId: session.user.id }, orderBy: { createdAt: "desc" }, take: 4 });
+  const mySubmissions = await prisma.event.findMany({ where: { authorId: userId }, orderBy: { createdAt: "desc" }, take: 4 });
 
   // 1. Fetch data Payloads efficiently
   const [userProgress, rawRoadmaps] = await Promise.all([
      prisma.userProgress.findMany({ 
-       where: { userId: session.user.id }, 
+       where: { userId }, 
        orderBy: { createdAt: "desc" },
        select: { id: true, itemId: true, createdAt: true }
      }),
@@ -166,7 +172,7 @@ export default async function DashboardPage() {
         <div className="relative z-10 px-8 py-10 md:py-14 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-4 max-w-2xl">
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-              Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">{session.user.name || session.user.email?.split("@")[0]}</span>
+              Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">{name}</span>
             </h1>
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-full text-sm">
                <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
@@ -179,7 +185,7 @@ export default async function DashboardPage() {
               <Link href="/modules">
                 <Button className="rounded-full shadow-lg">Explore Modules</Button>
               </Link>
-               {session?.user?.role === "MEMBER" && (
+               {role === "MEMBER" && (
                  <Link href="/request-admin">
                     <Button variant="outline" className="rounded-full border-amber-500/20 hover:bg-amber-500/10 text-amber-500"><Shield className="h-4 w-4 mr-1.5" /> Apply for Admin</Button>
                  </Link>
@@ -191,26 +197,21 @@ export default async function DashboardPage() {
           </div>
           <div className="hidden md:flex flex-col items-center gap-3">
             <Link href="/dashboard" className="h-32 w-32 shrink-0 rounded-full border-4 border-background shadow-xl bg-primary/10 flex items-center justify-center overflow-hidden hover:scale-105 transition-transform duration-500 cursor-pointer">
-               {session.user.image ? (
-                  <img src={session.user.image} alt={session.user.name || "User"} className="h-full w-full object-cover" />
+               {image ? (
+                  <img src={image} alt={name} className="h-full w-full object-cover" />
                ) : (
                   <Terminal className="h-12 w-12 text-primary" />
                )}
             </Link>
             <div className="text-center space-y-1">
-               <span className="text-sm font-bold text-foreground/90">{session.user.name}</span>
-               {(session.user as any).resumeUrl && (
-                  <a href={(session.user as any).resumeUrl} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline flex items-center justify-center gap-1 font-semibold">
-                     <FileText className="h-3.5 w-3.5" /> View Resume
-                  </a>
-               )}
+               <span className="text-sm font-bold text-foreground/90">{name}</span>
             </div>
           </div>
         </div>
       </div>
 
       <DashboardClient 
-         user={{ name: session.user.name || session.user.email?.split("@")[0], pointTotals, currentLevel, nextLevelPercent }}
+         user={{ name: name, pointTotals, currentLevel, nextLevelPercent }}
          currentRoadmap={currentRoadmap}
          allStats={{ topics: userProgress.length, modules: modulesCompletedCount, roadmaps: roadmapsCompletedCount, points: pointTotals }}
          progress={userProgress.map((p: any) => ({ createdAt: p.createdAt, id: p.id }))}

@@ -16,7 +16,7 @@ const CATEGORIES = ["ALL", "Docker", "Kubernetes", "Terraform", "Linux", "Securi
 export function BlogClient({ initialData }: { initialData: any[] }) {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
-  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role));
+  const isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role));
 
   const [search, setSearch] = useState("");
   const initialCategory = searchParams.get("category") || "ALL";

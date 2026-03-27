@@ -11,6 +11,7 @@ export function WelcomeToast() {
   const pathname = usePathname()
 
   useEffect(() => {
+    if (status === "loading") return
     if (typeof window === "undefined") return
 
     // Logic 1: Brand new visitor handling
@@ -29,7 +30,7 @@ export function WelcomeToast() {
 
     // Logic 2: Authenticated login welcome
     if (status === "authenticated" && session?.user) {
-      const welcomedKey = `welcomed_${session.user.id}`
+      const welcomedKey = `welcomed_${(session.user as any).id}`
       const hasBeenWelcomedThisSession = sessionStorage.getItem(welcomedKey)
 
       if (!hasBeenWelcomedThisSession) {

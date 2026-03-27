@@ -9,7 +9,7 @@ import { ArrowLeft, Loader2, Lock, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default function RequestAdminPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [reason, setReason] = useState("");
   const [category, setCategory] = useState("GENERAL");
@@ -29,7 +29,7 @@ export default function RequestAdminPage() {
   }, []);
 
   if (status === "loading") return <div className="p-12 text-center text-muted-foreground">Loading...</div>;
-  if (!session) { router.push("/login"); return null; }
+  if (status !== "authenticated") { router.push("/login"); return null; }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

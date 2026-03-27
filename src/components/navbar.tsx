@@ -3,12 +3,13 @@
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { useSession, signOut } from "next-auth/react"
+import { useSession, signIn, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import {
-  Search, Terminal, LogOut, UserCircle, Shield, Bookmark,
+  Search, Terminal, Shield, Bookmark,
   Calendar, PlusCircle, FileText, Map, Link as LinkIcon,
-  Menu, X as CloseIcon, ArrowRight, ChevronDown, Sparkles
+  Menu, X as CloseIcon, ArrowRight, ChevronDown, 
+  LogOut, User as UserIcon, LayoutDashboard, Settings
 } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { NotificationsDropdown } from "./notifications-dropdown"
@@ -17,6 +18,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Navbar() {
   const { data: session, status } = useSession()
@@ -30,8 +32,9 @@ export function Navbar() {
     blogs: [], cheatsheets: [], modules: [], roadmaps: [], events: [], resources: []
   })
   const [searching, setSearching] = useState(false)
-  const reminderChecked = useRef(false)
-  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(session?.user?.role ?? "")
+  
+  const user = session?.user
+  const isAdmin = !!(user && ["ADMIN", "SUPER_ADMIN"].includes((user as any).role))
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 12)
@@ -64,27 +67,7 @@ export function Navbar() {
     return () => clearTimeout(t)
   }, [searchQuery])
 
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.id && !reminderChecked.current) {
-      reminderChecked.current = true
-      fetch("/api/auth/check-reminders", { method: "POST" }).catch(() => { })
-    }
-  }, [status, session?.user?.id])
-
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href)
-
-  const getInitials = (name?: string | null) => {
-    if (!name) return "U"
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-  }
-
-  const getAvatarColor = (name?: string | null) => {
-    if (!name) return "bg-primary"
-    const colors = ["bg-red-500", "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-indigo-500", "bg-amber-500", "bg-pink-500"]
-    let sum = 0
-    for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i)
-    return colors[sum % colors.length]
-  }
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -100,7 +83,7 @@ export function Navbar() {
   return (
     <>
       <nav className={`
-        fixed top-0 left-0 right-0 z-50 transition-all duration-300
+        fixed top-0 left-0 right-0 z-[150] transition-all duration-300
         ${scrolled
           ? "bg-background/90 backdrop-blur-2xl shadow-[0_1px_0_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)]"
           : "bg-transparent"
@@ -150,7 +133,7 @@ export function Navbar() {
                 `}>
                   Resources <ChevronDown className="h-3 w-3 opacity-60" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-40 rounded-xl border border-border/40 bg-background/95 backdrop-blur-xl shadow-xl mt-1">
+                <DropdownMenuContent align="start" className="w-40 rounded-xl border border-border/40 bg-background/95 backdrop-blur-xl shadow-xl mt-1 z-[200]">
                   {[
                     { href: "/resources", label: "All Resources", color: "text-foreground" },
                     { href: "/resources?type=ARTICLE", label: "Articles", color: "text-blue-500" },
@@ -172,7 +155,7 @@ export function Navbar() {
             <div className="hidden md:block mr-3 lg:mr-6">
               <button
                 onClick={() => setCmdkOpen(true)}
-                className="flex items-center gap-3 h-10 pl-4 pr-3 rounded-xl bg-foreground/[0.05] hover:bg-foreground/[0.08] border border-border/40 hover:border-border/60 transition-all duration-200 group flex-1 max-w-[320px] lg:max-w-[480px] xl:max-w-[600px]"
+                className="flex items-center gap-3 h-10 pl-4 pr-3 rounded-xl bg-foreground/[0.05] hover:bg-foreground/[0.08] border border-border/40 hover:border-border/60 transition-all duration-200 group flex-1 md:max-w-[450px] lg:max-w-[650px] xl:max-w-[850px]"
                 title="Search (Ctrl+K)"
               >
                 <Search className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
@@ -200,91 +183,84 @@ export function Navbar() {
 
               {status === "loading" ? (
                 <div className="h-8 w-16 animate-pulse bg-foreground/10 rounded-lg" />
-              ) : session ? (
-                <>
-                  {/* Admin quick badge */}
-                  {isAdmin && (
-                    <Link href="/admin" className="hidden sm:flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-amber-500/10 text-amber-600 text-xs font-bold border border-amber-500/20 hover:bg-amber-500/15 transition-all">
-                      <Shield className="h-3 w-3" />
-                      <span className="hidden lg:inline">Admin</span>
-                    </Link>
-                  )}
-
-                  {/* Dashboard / Admin link - hidden on very small */}
-                  {!isAdmin && (
-                    <Link href="/dashboard" className="hidden sm:block">
-                      <Button variant="ghost" size="sm" className="h-8 text-xs font-bold px-3">Dashboard</Button>
-                    </Link>
-                  )}
-
-                  {/* Quick Create (admin) */}
-                  {isAdmin && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-foreground/[0.06] transition-colors border border-dashed border-border/50 hover:border-primary/40 text-muted-foreground hover:text-primary">
-                          <PlusCircle className="h-4 w-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40 rounded-xl">
-                        <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-black">Create</DropdownMenuLabel>
-                        <DropdownMenuItem asChild><Link href="/admin/blog" className="text-xs font-semibold cursor-pointer gap-2"><FileText className="h-3.5 w-3.5 text-blue-500" />New Blog</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href="/admin/cheatsheets" className="text-xs font-semibold cursor-pointer gap-2"><Bookmark className="h-3.5 w-3.5 text-green-500" />Cheatsheet</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href="/admin/modules/new" className="text-xs font-semibold cursor-pointer gap-2"><Terminal className="h-3.5 w-3.5 text-purple-500" />New Module</Link></DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-
-                  <NotificationsDropdown />
-
-                  {/* Avatar dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="h-8 w-8 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-primary/30 transition-all duration-200 shrink-0">
-                        {session.user.image ? (
-                          <img src={session.user.image} alt="User" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className={`h-full w-full flex items-center justify-center text-[11px] font-black text-white ${getAvatarColor(session.user.name)}`}>
-                            {getInitials(session.user.name)}
-                          </div>
-                        )}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-52 rounded-xl border border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl">
-                      <div className="px-3 py-2.5 border-b border-border/10">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <p className="text-sm font-bold leading-none">{session.user.name}</p>
-                          {isAdmin && <span className="text-[9px] font-black uppercase text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Admin</span>}
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate mt-1">{session.user.email}</p>
-                      </div>
-                      <div className="py-1">
-                        <DropdownMenuItem asChild><Link href="/dashboard" className="text-xs font-semibold cursor-pointer">Dashboard</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href="/profile" className="text-xs font-semibold cursor-pointer gap-2"><UserCircle className="h-3.5 w-3.5" />Edit Profile</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href="/bookmarks" className="text-xs font-semibold cursor-pointer gap-2"><Bookmark className="h-3.5 w-3.5 text-primary" />Saves / Remind</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href="/events/dashboard" className="text-xs font-semibold cursor-pointer gap-2"><Calendar className="h-3.5 w-3.5 text-amber-500" />Manage Events</Link></DropdownMenuItem>
-                        {isAdmin && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild><Link href="/admin" className="text-xs font-semibold cursor-pointer gap-2"><Shield className="h-3.5 w-3.5 text-amber-500" />Moderation Panel</Link></DropdownMenuItem>
-                          </>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => signOut()} className="text-xs font-bold cursor-pointer text-destructive focus:text-destructive gap-2">
-                          <LogOut className="h-3.5 w-3.5" />Sign out
-                        </DropdownMenuItem>
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Link href="/login">
-                    <Button variant="ghost" size="sm" className="h-8 text-xs font-bold px-3 hidden sm:inline-flex">Sign In</Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button size="sm" className="h-8 text-xs font-bold px-4 rounded-lg">Join Free</Button>
-                  </Link>
-                </div>
+                <>
+                {session ? (
+                    <>
+                      {/* Admin quick badge */}
+                      {isAdmin && (
+                        <Link href="/admin" className="hidden sm:flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase tracking-widest border border-amber-500/20 hover:bg-amber-500/15 transition-all">
+                          <Shield className="h-3 w-3" />
+                          <span className="hidden lg:inline">Admin Panel</span>
+                        </Link>
+                      )}
+
+                      {/* Quick Create (admin) */}
+                      {isAdmin && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-foreground/[0.06] transition-colors border border-dashed border-border/50 hover:border-primary/40 text-muted-foreground hover:text-primary">
+                              <PlusCircle className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40 rounded-xl z-[200]">
+                            <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-black">Create</DropdownMenuLabel>
+                            <DropdownMenuItem asChild><Link href="/admin/blog" className="text-xs font-semibold cursor-pointer gap-2"><FileText className="h-3.5 w-3.5 text-blue-500" />New Blog</Link></DropdownMenuItem>
+                            <DropdownMenuItem asChild><Link href="/admin/cheatsheets" className="text-xs font-semibold cursor-pointer gap-2"><Bookmark className="h-3.5 w-3.5 text-green-500" />Cheatsheet</Link></DropdownMenuItem>
+                            <DropdownMenuItem asChild><Link href="/admin/modules/new" className="text-xs font-semibold cursor-pointer gap-2"><Terminal className="h-3.5 w-3.5 text-purple-500" />New Module</Link></DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+
+                      <NotificationsDropdown />
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="relative group/avatar outline-none">
+                            <Avatar className="h-9 w-9 ring-2 ring-transparent group-hover/avatar:ring-primary/20 transition-all border border-border/10 shadow-sm">
+                              <AvatarImage src={user?.image || ""} />
+                              <AvatarFallback className="bg-primary/5 text-[10px] font-bold">{user?.name?.slice(0, 2).toUpperCase() || "??"}</AvatarFallback>
+                            </Avatar>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56 rounded-xl mt-2 z-[200]">
+                          <DropdownMenuLabel className="font-normal px-4 py-3">
+                            <div className="flex flex-col space-y-1">
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-bold leading-none">{user?.name}</p>
+                                {isAdmin && (
+                                  <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">Admin</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] leading-none text-muted-foreground font-medium opacity-60">{user?.email}</p>
+                            </div>
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild><Link href="/dashboard" className="flex items-center gap-2 cursor-pointer py-2.5 font-bold text-xs"><LayoutDashboard className="h-3.5 w-3.5 text-blue-500" /> Dashboard</Link></DropdownMenuItem>
+                          <DropdownMenuItem asChild><Link href="/profile" className="flex items-center gap-2 cursor-pointer py-2.5 font-bold text-xs"><UserIcon className="h-3.5 w-3.5 text-purple-500" /> Edit Profile</Link></DropdownMenuItem>
+                          <DropdownMenuItem asChild><Link href="/bookmarks" className="flex items-center gap-2 cursor-pointer py-2.5 font-bold text-xs"><Bookmark className="h-3.5 w-3.5 text-cyan-500" /> Saves / Remind</Link></DropdownMenuItem>
+                          
+                          {isAdmin && (
+                            <>
+                              <DropdownMenuItem asChild><Link href="/events/dashboard" className="flex items-center gap-2 cursor-pointer py-2.5 font-bold text-xs"><Calendar className="h-3.5 w-3.5 text-orange-500" /> Manage Events</Link></DropdownMenuItem>
+                              <DropdownMenuItem asChild><Link href="/admin" className="flex items-center gap-2 cursor-pointer py-2.5 font-bold text-xs"><Shield className="h-3.5 w-3.5 text-amber-500" /> Moderation Panel</Link></DropdownMenuItem>
+                            </>
+                          )}
+                          
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => signOut()} className="flex items-center gap-2 cursor-pointer py-2.5 font-black text-xs text-red-500 focus:text-red-500 hover:bg-red-500/5"><LogOut className="h-3.5 w-3.5" /> Sign out</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                       <Button onClick={() => signIn()} variant="ghost" size="sm" className="h-8 text-xs font-bold px-3 hidden sm:inline-flex">Sign In</Button>
+                       <Link href="/signup">
+                        <Button size="sm" className="h-8 text-xs font-bold px-4 rounded-lg shadow-lg shadow-primary/20">Join Free</Button>
+                       </Link>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Mobile hamburger */}
@@ -420,7 +396,7 @@ export function Navbar() {
                 </Link>
               ))}
 
-              {isAdmin && (
+              {session && isAdmin && (
                 <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl bg-amber-500/8 text-amber-600 font-bold border border-amber-500/15 mt-3 text-[14px]">
                   <Shield className="h-4 w-4" /> Admin Dashboard
                 </Link>
@@ -429,19 +405,24 @@ export function Navbar() {
 
             {/* Footer actions */}
             <div className="p-4 border-t border-border/10 space-y-2 shrink-0">
-              {!session ? (
+              {session ? (
+                <div className="flex items-center gap-3 px-3 py-2">
+                   <Avatar className="h-10 w-10">
+                      <AvatarImage src={user?.image || ""} />
+                      <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+                   </Avatar>
+                   <div>
+                      <p className="text-sm font-bold">{user?.name}</p>
+                      <button onClick={() => signOut()} className="text-xs text-red-500 font-black uppercase">Sign Out</button>
+                   </div>
+                </div>
+              ) : (
                 <div className="flex gap-2">
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full h-10 font-bold rounded-xl">Sign In</Button>
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                  <Button onClick={() => signIn()} variant="outline" size="sm" className="w-full h-10 font-bold rounded-xl">Sign In</Button>
+                  <Link href="/signup" className="w-full">
                     <Button size="sm" className="w-full h-10 font-bold rounded-xl">Join Free</Button>
                   </Link>
                 </div>
-              ) : (
-                <button onClick={() => signOut()} className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-border/40 text-sm font-bold text-destructive hover:bg-destructive/5 transition-colors">
-                  <LogOut className="h-4 w-4" /> Sign out
-                </button>
               )}
               <div className="flex items-center justify-between px-1 pt-1">
                 <span className="text-[10px] text-muted-foreground/50 font-medium">Theme</span>

@@ -36,16 +36,16 @@ export function isAsciiDiagram(text: string): boolean {
 // ── Marked custom renderer ────────────────────────────────────────────────
 export function buildRenderer() {
   const renderer = new marked.Renderer();
+  const seenIds = new Set<string>();
 
   renderer.code = function ({ text, lang }: { text: string; lang?: string }) {
     let hash = 0;
     for (let i = 0; i < text.length; i++) {
-      hash = (hash << 5) - hash + text.charCodeAt(i);
-      hash |= 0;
+        hash = (hash << 5) - hash + text.charCodeAt(i);
+        hash |= 0;
     }
     const blockId = "code-" + Math.abs(hash).toString(36);
     const unescaped = text
-
       .replace(/&amp;/g, "&")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
@@ -155,10 +155,19 @@ export function buildRenderer() {
 
   renderer.heading = function ({ text, depth }: { text: string; depth: number }) {
     const slug = text.toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
       .trim();
+
+    let finalSlug = slug;
+    let counter = 1;
+    while (seenIds.has(finalSlug)) {
+      finalSlug = `${slug}-${counter}`;
+      counter++;
+    }
+    seenIds.add(finalSlug);
+
     const sizeClasses: Record<number, string> = {
       1: "text-3xl font-extrabold mb-6 mt-12",
       2: "text-2xl font-bold mb-4 mt-10 scroll-mt-24",
@@ -166,7 +175,7 @@ export function buildRenderer() {
       4: "text-lg font-bold mb-2 mt-6",
     };
     const classes = sizeClasses[depth] || "font-bold";
-    return `<h${depth} id="${slug}" class="${classes}">${text}</h${depth}>`;
+    return `<h${depth} id="${finalSlug}" class="${classes}">${text}</h${depth}>`;
   };
 
   return renderer;
@@ -180,5 +189,5 @@ export function parseMarkdown(content: string): string {
   const html = marked.parse(trimmed, { renderer: buildRenderer(), gfm: true, breaks: false }) as string;
   return html
     .replace(/<table/g, '<div class="w-full overflow-x-auto my-6 border border-border/40 rounded-xl shadow-lg bg-card/40 backdrop-blur-xl [&_tr:nth-child(even)]:bg-muted/15 [&_tr:hover]:bg-primary/5 [&_tr]:transition-colors"><table class="w-full border-collapse"')
-    .replace(/<\/table>/g, '</table></div>');
+    .replace(/<\/table>/g, "</table></div>");
 }
