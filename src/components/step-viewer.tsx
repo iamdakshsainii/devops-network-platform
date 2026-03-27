@@ -525,7 +525,7 @@ export function StepViewer({
               <span className="truncate max-w-[150px] md:max-w-xs transition-all" style={{ color: themeColor }}>{step.title}</span>
               {isAdmin && !isBlog && (
                 <Link 
-                  href={isStandalone ? `/admin/modules?search=${encodeURIComponent(step.title)}` : `/admin/roadmaps?id=${roadmap.id}`} 
+                  href={isStandalone ? `/admin/modules/${roadmap.id}` : `/admin/roadmaps/${roadmap.id}`} 
                   target="_blank"
                   className="ml-2 p-1.5 rounded-lg bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 shadow-sm transition-all animate-in fade-in zoom-in duration-300"
                   title="Edit Module"
@@ -564,10 +564,13 @@ export function StepViewer({
                           setLocalSearch(""); 
                           
                           if (viewMode === "CONTINUOUS") {
-                            const elId = item.kind === "subtopic" ? `subtopic-${item.subId}` : `topic-${item.topicId}`;
-                            const el = document.getElementById(elId);
+                            const targetId = item.kind === "subtopic" 
+                              ? (document.getElementById(`subtopic-${item.subId}`) ? `subtopic-${item.subId}` : item.subId)
+                              : `topic-${item.topicId}`;
+                            
+                            const el = document.getElementById(targetId);
                             if (el) {
-                              const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                              const y = el.getBoundingClientRect().top + window.scrollY - 120;
                               window.scrollTo({ top: y, behavior: 'smooth' });
                             }
                           } else {
@@ -575,9 +578,9 @@ export function StepViewer({
                             
                             if (item.kind === "subtopic") {
                                setTimeout(() => {
-                                 const el = document.getElementById(`subtopic-${item.subId}`);
+                                 const el = document.getElementById(`subtopic-${item.subId}`) || document.getElementById(item.subId);
                                  if (el) {
-                                    const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                                    const y = el.getBoundingClientRect().top + window.scrollY - 120;
                                     window.scrollTo({ top: y, behavior: 'smooth' });
                                  }
                                }, 150);
@@ -675,9 +678,10 @@ export function StepViewer({
                             key={`${topic.id}-${sub.id}`}
                             onClick={() => {
                               // For virtual subtopics, we scroll directly to the slugified ID
-                              const el = document.getElementById(sub.id);
+                              // For real subtopics, the ID is prefixed with 'subtopic-'
+                              const el = document.getElementById(`subtopic-${sub.id}`) || document.getElementById(sub.id);
                               if (el) {
-                                const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                                const y = el.getBoundingClientRect().top + window.scrollY - 120;
                                 window.scrollTo({ top: y, behavior: 'smooth' });
                               }
                             }}

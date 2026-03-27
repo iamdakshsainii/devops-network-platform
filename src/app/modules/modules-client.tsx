@@ -352,15 +352,15 @@ export default function ModulesPageClient({ data }: { data: any[] }) {
                         </div>
                       )}
 
-                      <CardHeader className="pl-6 w-full pb-4 border-b border-border/5 relative z-10">
-                        <div className="flex justify-between items-start mb-4">
+                      <CardHeader className="pl-6 w-full pb-4 border-b border-border/5 relative z-10 flex flex-col gap-5">
+                        <div className="flex justify-between items-start">
                           <div className="text-3xl bg-primary/5 p-3.5 rounded-2xl shadow-sm border border-border/10 group-hover:bg-primary/10 group-hover:scale-105 transition-all duration-300">
                             {mod.icon}
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-end gap-1.5 pt-1">
                             {isAdmin && (
-                              <Link href={`/admin/modules?search=${encodeURIComponent(mod.title)}`} target="_blank" onClick={(e) => e.stopPropagation()}>
-                                <Button variant="outline" size="sm" className="rounded-full h-8 text-[11px] font-bold gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/20 shadow-sm">
+                              <Link href={`/admin/modules/${mod.id}`} target="_blank" onClick={(e) => e.stopPropagation()}>
+                                <Button variant="outline" size="sm" className="rounded-full h-8 text-[11px] font-bold gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/20 shadow-sm px-3">
                                   <Edit className="h-3 w-3" /> Edit
                                 </Button>
                               </Link>
@@ -368,14 +368,14 @@ export default function ModulesPageClient({ data }: { data: any[] }) {
                             {mod.roadmapTitle && (
                               <Badge
                                 variant="outline"
-                                className="text-[10px] uppercase font-bold tracking-wider rounded-md border-border/30 text-muted-foreground/80 bg-background/40 backdrop-blur-sm"
+                                className="text-[9px] uppercase font-bold tracking-widest rounded-md border-border/30 text-muted-foreground/80 bg-background/40 backdrop-blur-sm px-2 py-0.5"
                               >
                                 {mod.roadmapTitle}
                               </Badge>
                             )}
                           </div>
                         </div>
-                        <CardTitle className="text-xl group-hover:text-primary transition-colors line-clamp-2 font-black flex items-center leading-snug tracking-tight mb-1 h-14">
+                        <CardTitle className="text-xl group-hover:text-primary transition-colors font-black leading-snug tracking-tight mb-1 min-h-[3rem] flex items-center">
                           {mod.title}
                         </CardTitle>
                       </CardHeader>

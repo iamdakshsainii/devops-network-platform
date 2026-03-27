@@ -15,6 +15,12 @@ Our platform follows a clean **2-level flat hierarchy** to keep the sidebar focu
 | **3. Content** | `### Title` | **Sidebar Subtopic.** These appear as sub-links under each topic. |
 | **4. Internal** | `####` or `#####` | **Formatting Only.** These do NOT appear in the sidebar. Use for Problem/Solution. |
 
+## — main topic (sidebar)
+### — only when it genuinely makes sense as a subtopic, not forced. Short and clean like Users and Groups, MFA, IAM Roles
+#### — internal content only, problem/solution, named naturally
+Numbering on ## is fine, but ### only when logic demands it — not just to add structure
+
+
 ---
 
 ## 🎯 User Experience Requirements

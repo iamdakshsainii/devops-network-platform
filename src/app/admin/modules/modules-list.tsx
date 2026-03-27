@@ -10,7 +10,7 @@ import { StepViewer } from "@/components/step-viewer";
 
 export default function AdminModulesList({ modules, roadmaps = [] }: { modules: any[], roadmaps?: any[] }) {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("PUBLISHED");
   const [roadmapFilter, setRoadmapFilter] = useState<string>("ALL");
   const [localModules, setLocalModules] = useState(modules);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -180,9 +180,8 @@ export default function AdminModulesList({ modules, roadmaps = [] }: { modules: 
             onChange={(e) => setStatusFilter(e.target.value)}
             className="h-9 px-3 border rounded-md bg-background text-sm flex-1 sm:flex-none"
           >
-            <option value="ALL">All Status</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="PENDING">Drafts</option>
+            <option value="PUBLISHED">Live</option>
+            <option value="PENDING">Draft</option>
             <option value="DELETED">Recycle Bin</option>
           </select>
 

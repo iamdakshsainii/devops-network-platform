@@ -1,447 +1,885 @@
-# Build and Package management
+# Build and Package Management
 
-## Introduction
+This module teaches you how software goes from raw source code to a deployable artifact.
+Every DevOps engineer works with build tools and package managers daily — understanding them deeply makes everything else easier
 
-### Build & Package Management
+---
 
-A beginner-friendly guide to understanding how raw code becomes a deployable application — covering build tools, dependency management, artifact creation, and a complete reference project.
+## 01. Why Build and Package Management Exists
 
-### Introduction
 
-Understanding Build & Package Management is one of the most important foundations in DevOps. Before your app can run anywhere — a server, a container, or the cloud — it goes through a structured process: source code gets compiled or bundled, dependencies get pulled in, and a final deployable package gets created.
+You write code in `.py` or `.java` files. The server that runs your application does not care about those files directly. It needs a packaged, runnable artifact — a `.jar`, a `.whl`, a Docker image. Getting from source code to that artifact is what build management solves.
 
-Think of it like cooking:
-- Your source code = raw ingredients
-- Build tool = the oven/stove
-- Dependencies = spices and add-ons you buy from a store
-- Artifact = the final dish, ready to serve
+#### The Problem Without It
 
-### Why it Matters in DevOps
+Imagine a team of five developers working on a Java application. Developer A builds it on their MacBook with Java 17. Developer B builds it on Windows with Java 11. The CI server runs Java 8. The production server runs Java 17.
 
-- Ensures the app runs the same way in dev, staging, and production
-- Automates repetitive manual steps
-- Makes deployments fast and reliable
-- Catches errors early (during build/test phase)
+Every environment produces a slightly different artifact. Bugs appear on production that never showed up locally. Nobody knows why. Deployments are unpredictable.
 
-### The General Flow
+**Build tools solve this by making the build process explicit, repeatable, and environment-independent.** The same build command produces the same artifact regardless of who runs it or where.
 
-```
-Source Code
-    |
-    v
-Install Dependencies  <-- package manager (npm, pip, maven)
-    |
-    v
-Compile / Bundle      <-- build tool (webpack, go build, mvn)
-    |
-    v
-Run Tests             <-- unit/integration tests
-    |
-    v
-Create Artifact       <-- .jar, .whl, Docker image, binary
-    |
-    v
-Store in Repository   <-- Nexus, Artifactory, Docker Hub
-    |
-    v
-Deploy
-```
+#### The Problem Without Package Management
 
-## Build Tools
+Your Python application uses 12 third-party libraries. Each library has its own dependencies. Some of those dependencies conflict with each other. Another project on the same machine needs a different version of the same library.
 
-### Build Tools
+Without package management this is a nightmare — manually downloading ZIPs, copying files, tracking versions in a text document. When something breaks you have no idea what changed.
 
-Build tools automate the steps needed to turn source code into a runnable artifact. Every language ecosystem has its own tooling, but the concept is the same — take raw source files, process them, and produce something deployable.
+**Package managers solve this by declaring dependencies in a file, locking exact versions, and installing everything reproducibly in one command.**
 
-### Common Build Tools by Language
-
-| Language   | Build Tool(s)           | Output Artifact         |
-|:-----------|:------------------------|:------------------------|
-| Java       | Maven, Gradle           | `.jar`, `.war`          |
-| JavaScript | npm, yarn, webpack      | bundled JS files        |
-| Python     | pip, poetry, setuptools | `.whl`, `.tar.gz`       |
-| Go         | `go build` (built-in)   | binary executable       |
-| C/C++      | Make, CMake             | binary executable       |
-
-### Build Lifecycle
-
-Most build tools follow a fixed sequence of steps called a **lifecycle**. Each step depends on the previous one completing successfully.
-
-Maven's lifecycle is a great example to understand this:
+#### Two Separate Concerns That Work Together
 
 ```
-clean  →  validate  →  compile  →  test  →  package  →  install  →  deploy
+Source Code (.py, .java, .go)
+    │
+    ▼
+Package Manager
+  → Downloads all dependencies
+  → Locks exact versions
+  → Isolates from other projects
+    │
+    ▼
+Build Tool
+  → Compiles code (if needed)
+  → Runs tests
+  → Packages into artifact (.jar, .whl, Docker image)
+    │
+    ▼
+Artifact
+  → Ready to deploy
+  → Same on every machine
+  → Versioned and stored in a registry
 ```
 
-- `clean` — removes old build output so you start fresh
-- `compile` — turns `.java` source files into `.class` bytecode
-- `test` — runs your unit tests automatically
-- `package` — wraps everything into a `.jar` or `.war` file
-- `install` — puts the artifact in your local Maven repository
-- `deploy` — uploads the artifact to a remote repository
+---
 
-Other build tools have similar stages, even if the names differ.
 
-### Common Build Commands
 
-```bash
+## 02. Build Tools Overview
 
-### Java (Maven)
 
-mvn clean package          # clean old build + compile + test + create .jar
+Different languages have different ecosystems. You do not need to know all of them — but you do need to understand what a build tool does and recognize the most common ones.
 
-## Java (Gradle)
+#### What a Build Tool Does
 
-### Java (Gradle)
+Every build tool, regardless of language, does roughly the same things:
 
-gradle build               # compile + test + package
-
-### JavaScript (npm)
-
-npm run build              # runs the build script defined in package.json
-
-### Python
-
-python -m build            # creates .whl and .tar.gz in /dist folder
-
-### Go
-
-go build -o myapp ./...    # compiles everything into a binary named myapp
+```
+1. Dependency resolution  → fetch all libraries the project needs
+2. Compilation            → turn source code into runnable code (not all languages)
+3. Testing                → run the test suite and report results
+4. Packaging              → bundle everything into a deployable artifact
+5. Publishing             → push the artifact to a registry or server
 ```
 
-### Dependency & Package Management
+#### Common Build Tools by Language
 
-Almost no application runs in isolation. Your code relies on external libraries — pieces of code written by others that you import into your project. Managing these libraries (installing, versioning, and locking them) is what package management is all about.
+| Language | Build Tool | Config File | Key Command |
+|----------|-----------|-------------|-------------|
+| Java / Kotlin | **Gradle** | `build.gradle` | `./gradlew build` |
+| Java | **Maven** | `pom.xml` | `mvn package` |
+| Python | **Poetry** | `pyproject.toml` | `poetry build` |
+| Python | **pip + setuptools** | `requirements.txt` / `setup.py` | `pip install` |
+| JavaScript | **npm** | `package.json` | `npm run build` |
+| JavaScript | **yarn** | `package.json` | `yarn build` |
+| Go | **go build** | `go.mod` | `go build ./...` |
+| Rust | **Cargo** | `Cargo.toml` | `cargo build` |
 
-## What Are Dependencies and Package Managers
+As a DevOps engineer you will encounter all of these in CI/CD pipelines. You need to know enough to write a pipeline step that runs the build, even if you did not write the application code.
 
-### What Are Dependencies and Package Managers
+---
 
-A **dependency** is any external library your app needs to work. A **package manager** is the tool that fetches, installs, and manages those libraries for you.
 
-Example: A Node.js app that sends emails might depend on the `nodemailer` library. Instead of writing email-sending logic yourself, you install nodemailer and use it.
 
-| Language   | Package Manager | Config File       | Lock File           |
-|:-----------|:----------------|:------------------|:--------------------|
-| JavaScript | npm, yarn, pnpm | `package.json`    | `package-lock.json` |
-| Python     | pip, poetry     | `pyproject.toml`  | `poetry.lock`       |
-| Java       | Maven           | `pom.xml`         | (resolved at build) |
-| Go         | Go Modules      | `go.mod`          | `go.sum`            |
+## 03. Java Build with Gradle
 
-### Version Pinning and Lock Files
 
-When you add a dependency, you also specify which version you want. This is called **version pinning**.
+Java is one of the most common languages in enterprise DevOps environments. Gradle is the modern standard for Java builds — it replaced Maven for most new projects because it is faster and more flexible.
 
-```json
-// package.json (Node.js)
-{
-  "dependencies": {
-    "express": "^4.18.0",    // ^ = compatible updates allowed (4.x.x)
-    "lodash": "~4.17.0",     // ~ = patch updates only (4.17.x)
-    "axios": "1.4.0"         // exact version, never changes
-  }
+#### Why Gradle Over Maven
+
+Maven uses XML configuration (`pom.xml`) — verbose and rigid. Gradle uses a Groovy or Kotlin DSL (`build.gradle`) — concise and programmable. Gradle also has an incremental build system that only rebuilds what changed, making large codebases significantly faster to build.
+
+#### Project Structure
+
+```
+my-java-app/
+├── build.gradle          ← build configuration
+├── settings.gradle       ← project name and subprojects
+├── gradlew               ← gradle wrapper script (use this, not global gradle)
+├── gradlew.bat           ← windows version
+├── gradle/
+│   └── wrapper/
+│       └── gradle-wrapper.properties   ← specifies gradle version
+└── src/
+    ├── main/
+    │   └── java/
+    │       └── com/myapp/
+    │           └── App.java
+    └── test/
+        └── java/
+            └── com/myapp/
+                └── AppTest.java
+```
+
+Always use `./gradlew` (the wrapper) instead of a globally installed Gradle. The wrapper downloads the exact Gradle version specified in the project — everyone gets the same version automatically.
+
+#### A Typical build.gradle
+
+```groovy
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.mycompany'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()         // where to download dependencies from
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.1.0'
+    implementation 'com.google.guava:guava:32.0.0-jre'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+}
+
+application {
+    mainClass = 'com.mycompany.App'
+}
+
+test {
+    useJUnitPlatform()
 }
 ```
 
-- `^` (caret) — allows minor and patch updates
-- `~` (tilde) — allows patch updates only
-- exact version — completely locked, no automatic updates
-
-**Lock files** take this one step further — they record the exact version of every dependency (including dependencies of dependencies) that was installed.
-
-```
-Without lock file:  Dev installs axios 1.4.0, CI installs axios 1.5.1 → different behavior
-With lock file:     Both always install axios 1.4.0 → reproducible builds
-```
-
-Always commit your lock file to version control. It is the guarantee of reproducibility.
-
-### Installing Dependencies
+#### Common Gradle Commands
 
 ```bash
+# Build the project (compile + test + package)
+./gradlew build
 
-### Node.js
+# Just compile without running tests
+./gradlew compileJava
 
-npm install                       # installs from package.json, creates lock file
-npm install express               # adds a new dependency
+# Run tests only
+./gradlew test
 
-### Python (pip)
+# Create the runnable JAR in build/libs/
+./gradlew jar
 
-pip install -r requirements.txt   # installs all listed packages
+# Run the application locally
+./gradlew run
 
-## Python (poetry)
+# See all available tasks
+./gradlew tasks
 
-### Python (poetry)
+# Clean the build directory (useful when builds behave strangely)
+./gradlew clean
 
-poetry install                    # installs from pyproject.toml + poetry.lock
-
-### Java (Maven)
-
-mvn dependency:resolve            # downloads all dependencies from pom.xml
-
-### Go
-
-go mod tidy                       # installs/removes based on go.mod
+# Build skipping tests (use sparingly — only for speed in CI when tests run separately)
+./gradlew build -x test
 ```
 
-### Artifact Creation & Storage
-
-After a successful build, the output is called an **artifact** — the thing you actually deploy. Managing artifacts properly (naming, versioning, storing) is critical for reliable deployments.
-
-### Artifact Types and Repositories
-
-An artifact is the packaged output of a build. Different ecosystems produce different artifact types.
-
-| Language   | Artifact Type       | Description                            |
-|:-----------|:--------------------|:---------------------------------------|
-| Java       | `.jar` / `.war`     | Packaged bytecode + dependencies       |
-| Python     | `.whl` (wheel)      | Installable Python package             |
-| Go         | binary              | Single compiled executable             |
-| JavaScript | bundled `.js` files | Minified, optimized frontend code      |
-| Docker     | image               | Complete app + OS layer, runs anywhere |
-
-After building, artifacts are stored in a **repository** so they can be versioned, shared, and pulled by deployment pipelines.
-
-| Repository       | Use Case                                        |
-|:-----------------|:------------------------------------------------|
-| Nexus            | Store `.jar`, `.whl`, npm packages (self-hosted)|
-| Artifactory      | Enterprise artifact storage (JFrog)             |
-| Docker Hub       | Public/private Docker images                    |
-| AWS ECR          | Docker images on AWS                            |
-| GitHub Packages  | Packages tied to your GitHub repository         |
-
-## Versioning Artifacts
-
-### Versioning Artifacts
-
-Always version your artifacts using **Semantic Versioning**:
+#### What the Build Produces
 
 ```
-v1.0.0   →  v1.0.1   patch: bug fix, no new features
-         →  v1.1.0   minor: new feature, backward compatible
-         →  v2.0.0   major: breaking change
+After ./gradlew build:
+
+build/
+├── classes/         ← compiled .class files
+├── libs/
+│   └── my-app-1.0.0.jar    ← the artifact you deploy
+├── reports/
+│   └── tests/       ← HTML test report
+└── test-results/    ← JUnit XML results (consumed by CI)
 ```
 
-Never overwrite an existing version. Always produce a new version tag for every release.
+The `.jar` file is the artifact. In a CI/CD pipeline you build it, then either run it directly on a server or copy it into a Docker image.
 
-### Packaging with Docker
+---
 
-In modern DevOps, almost every app gets packaged as a **Docker image**. An image bundles your app, its runtime, and its dependencies into a single portable unit that runs identically everywhere.
+
+
+## 04. Python Build with Poetry
+
+
+Python has multiple packaging tools — pip, setuptools, conda, pipenv. Poetry has become the modern standard because it handles dependency management, virtual environments, and packaging in one tool with a clean interface.
+
+#### The Problem Poetry Solves
+
+Python's old workflow had real problems:
+
+```
+Old way (requirements.txt):
+  pip install flask           → installs "latest" flask
+  pip freeze > requirements.txt  → captures current versions
+
+  Problems:
+    → requirements.txt has no way to separate dev deps from prod deps
+    → No lock file by default — "latest" today is different in 6 months
+    → Virtual environments are managed separately (venv, virtualenv)
+    → No standard way to build and publish packages
+
+Poetry fixes all of this in one tool.
+```
+
+#### Installing Poetry
+
+```bash
+# Install Poetry (do not use pip install poetry — use the official installer)
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Verify
+poetry --version
+```
+
+#### Starting a New Project
+
+```bash
+# Create a new project
+poetry new my-app
+
+# Or initialize in an existing directory
+cd existing-project
+poetry init
+```
+
+This creates:
+
+```
+my-app/
+├── pyproject.toml    ← project config and dependencies (replaces setup.py + requirements.txt)
+├── poetry.lock       ← exact locked versions of every dependency (commit this to git)
+├── README.md
+└── my_app/
+    └── __init__.py
+```
+
+#### pyproject.toml — The Single Config File
+
+```toml
+[tool.poetry]
+name = "my-app"
+version = "1.0.0"
+description = "A sample Flask application"
+authors = ["Daksh <daksh@company.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+requests = "^2.31.0"
+psycopg2-binary = "^2.9.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+black = "^23.0.0"
+flake8 = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+```
+
+Note the separation: `[tool.poetry.dependencies]` for production deps, `[tool.poetry.group.dev.dependencies]` for development-only tools. This means your production Docker image will not have pytest or black installed.
+
+#### Common Poetry Commands
+
+```bash
+# Install all dependencies (creates virtualenv automatically)
+poetry install
+
+# Install only production dependencies (for Docker builds)
+poetry install --only main
+
+# Add a new dependency
+poetry add flask
+
+# Add a dev-only dependency
+poetry add --group dev pytest
+
+# Remove a dependency
+poetry remove requests
+
+# Run a command inside the virtualenv
+poetry run python app.py
+poetry run pytest
+
+# Activate the virtualenv in your shell
+poetry shell
+
+# Build the package (.whl and .tar.gz)
+poetry build
+
+# Show all installed packages
+poetry show
+
+# Update all dependencies to latest allowed versions
+poetry update
+
+# Check for version conflicts
+poetry check
+```
+
+#### poetry.lock — Why You Must Commit It
+
+The `poetry.lock` file records the exact version of every package and every transitive dependency. When you run `poetry install` with a lock file, Poetry installs exactly those versions — not "latest matching the constraints".
+
+```
+pyproject.toml says:  flask = "^3.0.0"  (any version >= 3.0.0 and < 4.0.0)
+poetry.lock says:     flask = 3.0.2     (this exact version, always)
+
+Without lock file:
+  You install today → flask 3.0.2
+  Colleague installs next month → flask 3.0.3 (bug introduced)
+  CI installs in 6 months → flask 3.1.0 (breaking change)
+
+With lock file:
+  Everyone always gets flask 3.0.2
+  Consistent builds everywhere
+```
+
+**Always commit `poetry.lock` to git.**
+
+---
+
+
+
+## 05. Package Managers and Dependencies
+
+
+Package managers are what make modern software development possible. Without them, using a third-party library means manually downloading source code, figuring out its dependencies, downloading those too, keeping track of versions, and updating manually when security patches are released.
+
+#### What a Package Manager Does
+
+```
+You write in pyproject.toml:   flask = "^3.0.0"
+
+Poetry (package manager):
+  1. Looks up flask on PyPI (Python Package Index)
+  2. Finds the latest version matching ^3.0.0
+  3. Reads flask's own dependencies
+  4. Resolves the full dependency tree (flask needs Werkzeug, Jinja2, Click...)
+  5. Checks for version conflicts across all packages
+  6. Downloads and installs everything
+  7. Records exact versions in poetry.lock
+```
+
+You declare what you need. The package manager handles everything else.
+
+#### Dependency Types
+
+Understanding dependency types matters for keeping production images lean and secure:
+
+| Type | Purpose | In Production? |
+|------|---------|---------------|
+| **Production** | App actually needs this to run | Yes |
+| **Dev** | Testing, linting, formatting tools | No |
+| **Peer** | Expected to be provided by the consumer | Depends |
+| **Optional** | Extra features, not always needed | Only if needed |
+
+#### Version Constraint Syntax
+
+You will see these everywhere — in `pyproject.toml`, `package.json`, `build.gradle`:
+
+```
+Exact:      flask==3.0.2      → only this exact version
+Compatible: flask^3.0.0       → >=3.0.0 and <4.0.0  (most common)
+Patch only: flask~3.0.0       → >=3.0.0 and <3.1.0
+Any:        flask>=3.0.0      → 3.0.0 or higher (risky — could break)
+Range:      flask>=3.0,<4.0   → explicit range
+```
+
+In practice: use `^` (caret/compatible) for most dependencies. It allows patch and minor updates but prevents major version breaking changes from sneaking in.
+
+#### Dependency Security
+
+Every dependency is code you did not write and cannot fully audit. Package managers are also a common attack vector — attackers publish packages with names similar to popular ones (typosquatting) or compromise existing popular packages.
+
+```
+Basic hygiene:
+  → Run snyk test or npm audit regularly to find known CVEs
+  → Pin versions in lock files — do not use "latest"
+  → Review what new packages you add before adding them
+  → Keep dependencies updated — old versions have known vulnerabilities
+  → Use private registries (Artifactory, Nexus) in enterprise environments
+    to control which packages your team can use
+```
+
+---
+
+
+
+## 06. Versioning and Artifacts
+
+
+Once your build tool packages the code, you have an artifact. That artifact needs a version number so you can track exactly what is deployed, roll back to a previous version if something breaks, and communicate changes to your team.
+
+#### Semantic Versioning (SemVer)
+
+The industry standard for version numbers is **Semantic Versioning**: `MAJOR.MINOR.PATCH`
+
+```
+Version: 2.4.1
+         │ │ └── PATCH: Bug fixes, no new features, no breaking changes
+         │ └──── MINOR: New features added, fully backward compatible
+         └────── MAJOR: Breaking changes — existing code may stop working
+
+Examples:
+  1.0.0 → 1.0.1   Bug fix in authentication
+  1.0.1 → 1.1.0   New /users endpoint added
+  1.1.0 → 2.0.0   API completely restructured, old endpoints removed
+```
+
+When your CI/CD pipeline builds an artifact, tag it with the version. Never deploy an artifact tagged `latest` to production — you cannot tell what version is actually running.
+
+#### Artifact Versioning in Practice
+
+```bash
+# Tag with version from pyproject.toml in CI
+VERSION=$(poetry version -s)   # outputs: 1.2.3
+docker build -t my-app:$VERSION .
+docker build -t my-app:latest .   # also tag latest for convenience
+
+# Or use git commit SHA for immutable, traceable builds
+GIT_SHA=$(git rev-parse --short HEAD)   # outputs: a3f8c12
+docker build -t my-app:$GIT_SHA .
+
+# Best practice in production: use both
+docker tag my-app:$GIT_SHA my-app:1.2.3
+```
+
+Using the git SHA means you can trace any running container back to the exact commit that produced it.
+
+#### Artifact Registries
+
+Once built and tagged, artifacts are stored in registries:
+
+| Artifact Type | Registry Options |
+|--------------|-----------------|
+| Docker images | Amazon ECR, Docker Hub, GitHub Container Registry |
+| Python packages | PyPI (public), Artifactory, AWS CodeArtifact (private) |
+| Java JARs | Maven Central (public), Nexus, Artifactory (private) |
+| npm packages | npmjs.com (public), Verdaccio, Artifactory (private) |
+
+In CI/CD: build → tag with version → push to registry → deploy by pulling that exact tag.
+
+---
+
+
+
+## 07. Dockerizing Your Application
+
+
+Once your application is built and its dependencies are managed, the final packaging step for modern deployments is putting it in a Docker image. Docker makes the artifact fully portable — the same image runs identically in development, staging, and production.
+
+#### The Problem Docker Solves at This Stage
+
+You have a Python Flask app. It works on your machine. The staging server has a different Python version, different OS libraries, different system packages. It breaks.
+
+A Docker image bundles the app, the runtime, and everything it needs into one artifact. The server just needs Docker — nothing else.
+
+#### A Production-Quality Dockerfile for Flask
 
 ```dockerfile
-
-### Example Dockerfile for a Python app
-
-FROM python:3.11-slim
+# Stage 1: Build stage — install dependencies
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install poetry
+RUN pip install poetry==1.7.1
 
+# Copy dependency files first (Docker layer caching — deps only reinstall when these change)
+COPY pyproject.toml poetry.lock ./
+
+# Install only production dependencies, no virtualenv (we're in a container)
+RUN poetry config virtualenvs.create false && \
+    poetry install --only main --no-interaction --no-ansi
+
+# Stage 2: Runtime stage — copy only what's needed to run
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup --system appgroup && \
+    adduser --system --ingroup appgroup appuser
+
+# Copy installed packages from builder stage
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application source code
+COPY --chown=appuser:appgroup . .
+
+# Switch to non-root user
+USER appuser
+
+# Expose the port Flask runs on
+EXPOSE 5000
+
+# Run the application
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
+```
+
+#### Why Multi-Stage Builds
+
+The build above uses two stages. Here is why that matters:
+
+```
+Without multi-stage:
+  Image contains: Python + Poetry + all build tools + app code
+  Image size: ~800MB
+  Attack surface: large (Poetry, pip, build tools all present)
+
+With multi-stage:
+  Builder stage: installs everything needed to build
+  Runtime stage: copies only the installed packages and app code
+  Image size: ~120MB
+  Attack surface: minimal (only Python runtime and app)
+```
+
+Stage 1 does the heavy lifting. Stage 2 is the lean production image.
+
+#### Docker Layer Caching — The Key Optimization
+
+```dockerfile
+# Slow (no caching benefit):
 COPY . .
+RUN poetry install
 
-CMD ["python", "app.py"]
+# Fast (dependencies cached separately from code):
+COPY pyproject.toml poetry.lock ./    # Only changes when deps change
+RUN poetry install                     # Cached unless deps change
+COPY . .                               # Changes on every code change
+                                       # But install step above is cached
 ```
 
-```bash
+Copy dependency files first, install, then copy source code. Dependencies change rarely. Source code changes constantly. This way Docker reuses the cached install layer on every code-only change — much faster builds.
 
-### Build the image
+---
 
-docker build -t myapp:v1.0.0 .
 
-### Push to Docker Hub
 
-docker push myusername/myapp:v1.0.0
+## 08. Automating with Makefile
+
+
+A `Makefile` in the root of your project gives everyone a consistent set of commands regardless of the underlying tool. Instead of remembering `poetry run pytest --cov=app --cov-report=term-missing`, your teammate just runs `make test`.
+
+#### Why Makefile in a DevOps Context
+
+CI/CD pipelines, local development, and onboarding new developers all benefit from having standard commands defined in one place. The pipeline calls `make build`. The developer calls `make build`. Same thing runs everywhere.
+
+```
+Without Makefile:
+  Dev: "How do I run tests?"
+  → "Run poetry run pytest -v --cov=app --cov-report=term-missing tests/"
+  Dev: "How do I build the Docker image?"
+  → "Run docker build --build-arg ENV=production -t my-app:$(git rev-parse --short HEAD) ."
+  Dev: "How do I run linting?"
+  → checks Confluence page that is 3 months out of date
+
+With Makefile:
+  make test     → runs tests
+  make build    → builds Docker image
+  make lint     → runs linter
+  make help     → shows all available commands
 ```
 
-## Reference Project: Python Flask App
+#### A Practical Makefile for a Python Flask Project
 
-### Reference Project: Python Flask App
+```makefile
+# Variables
+APP_NAME     = my-flask-app
+VERSION      = $(shell poetry version -s)
+GIT_SHA      = $(shell git rev-parse --short HEAD)
+IMAGE_TAG    = $(APP_NAME):$(VERSION)-$(GIT_SHA)
+REGISTRY     = 123456789012.dkr.ecr.ap-south-1.amazonaws.com
 
-A complete, working example using Python. This walks through every stage — from writing code to packaging it as a Docker image — following the full Build & Package Management lifecycle.
+.PHONY: help install test lint format build push deploy clean
 
-### Project Structure
+## Show this help message
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+## Install all dependencies
+install:
+	poetry install
+
+## Run tests with coverage
+test:
+	poetry run pytest -v --cov=app --cov-report=term-missing tests/
+
+## Run linting
+lint:
+	poetry run flake8 app/ tests/
+	poetry run black --check app/ tests/
+
+## Auto-format code
+format:
+	poetry run black app/ tests/
+
+## Build Docker image
+build:
+	docker build -t $(IMAGE_TAG) .
+	docker tag $(IMAGE_TAG) $(APP_NAME):latest
+	@echo "Built: $(IMAGE_TAG)"
+
+## Push image to ECR
+push: build
+	aws ecr get-login-password --region ap-south-1 | \
+	  docker login --username AWS --password-stdin $(REGISTRY)
+	docker tag $(IMAGE_TAG) $(REGISTRY)/$(IMAGE_TAG)
+	docker push $(REGISTRY)/$(IMAGE_TAG)
+	@echo "Pushed: $(REGISTRY)/$(IMAGE_TAG)"
+
+## Run the app locally
+run:
+	poetry run flask run --host=0.0.0.0 --port=5000
+
+## Run the app in Docker
+run-docker: build
+	docker run -p 5000:5000 --rm $(APP_NAME):latest
+
+## Clean build artifacts
+clean:
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	rm -rf dist/ .coverage htmlcov/ .pytest_cache/
+
+## Full CI pipeline locally
+ci: install lint test build
+	@echo "CI pipeline passed locally"
+```
+
+Now your CI/CD pipeline is simply:
+
+```yaml
+- run: make install
+- run: make lint
+- run: make test
+- run: make build
+- run: make push
+```
+
+And any developer can run `make ci` locally to simulate the full pipeline before pushing.
+
+---
+
+
+
+## 09. Reference Project — Python Flask App
+
+
+Everything covered in this module comes together in a single reference project. This is a minimal but production-structured Python Flask application with Poetry, Docker, and Makefile wired up correctly.
+
+#### Project Structure
 
 ```
 flask-demo/
-|-- app.py
-|-- requirements.txt
-|-- tests/
-|   `-- test_app.py
-|-- Dockerfile
-`-- Makefile
+├── app/
+│   ├── __init__.py
+│   └── routes.py
+├── tests/
+│   ├── __init__.py
+│   └── test_app.py
+├── Dockerfile
+├── Makefile
+├── pyproject.toml
+├── poetry.lock           ← committed to git
+└── README.md
 ```
 
-### The Application
+#### app/__init__.py
 
 ```python
+from flask import Flask
 
-### app.py
+def create_app():
+    app = Flask(__name__)
 
-from flask import Flask, jsonify
+    from app.routes import main
+    app.register_blueprint(main)
 
-app = Flask(__name__)
+    return app
+```
 
-@app.route("/")
-def home():
-    return jsonify({"message": "Build & Package Demo", "status": "ok"})
+#### app/routes.py
 
-@app.route("/health")
+```python
+from flask import Blueprint, jsonify
+
+main = Blueprint('main', __name__)
+
+@main.route('/health')
 def health():
-    return jsonify({"status": "healthy"})
+    return jsonify({"status": "ok", "message": "Build & Package Demo"})
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+@main.route('/')
+def index():
+    return jsonify({"message": "Build & Package Demo", "status": "ok"})
 ```
 
-### Dependencies, Tests & Build
-
-**Step 1 — Declare dependencies** in `requirements.txt` with exact versions for reproducibility:
-
-```
-flask==3.0.0
-pytest==7.4.3
-```
-
-**Step 2 — Set up the environment and install:**
-
-```bash
-python -m venv venv
-source venv/bin/activate       # Linux/Mac
-
-pip install -r requirements.txt
-```
-
-**Step 3 — Write a test** so the build pipeline can verify correctness before packaging:
+#### tests/test_app.py
 
 ```python
-
-## tests/test_app.py
-
-### tests/test_app.py
-
 import pytest
-from app import app
+from app import create_app
 
 @pytest.fixture
 def client():
-    app.config["TESTING"] = True
+    app = create_app()
+    app.config['TESTING'] = True
     with app.test_client() as client:
         yield client
 
-def test_home(client):
-    response = client.get("/")
+def test_health_check(client):
+    response = client.get('/health')
     assert response.status_code == 200
-    assert response.get_json()["status"] == "ok"
+    data = response.get_json()
+    assert data['status'] == 'ok'
 
-def test_health(client):
-    response = client.get("/health")
+def test_index(client):
+    response = client.get('/')
     assert response.status_code == 200
-    assert response.get_json()["status"] == "healthy"
+    data = response.get_json()
+    assert 'message' in data
 ```
 
-**Step 4 — Run tests:**
+#### pyproject.toml
+
+```toml
+[tool.poetry]
+name = "flask-demo"
+version = "1.0.0"
+description = "Reference Flask app for Build and Package Management"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+black = "^23.0.0"
+flake8 = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+```
+
+#### Running the Full Workflow
 
 ```bash
-pytest tests/
+# Clone and set up
+git clone https://github.com/yourorg/flask-demo
+cd flask-demo
+make install
 
-### Expected output:
+# Run tests
+make test
+# Output:
+# tests/test_app.py::test_health_check PASSED
+# tests/test_app.py::test_index PASSED
+# Coverage: 94%
 
-
-
-### collected 2 items
-
-
-
-### tests/test_app.py ..     [100%]
-
-
-
-### ====== 2 passed in 0.45s ======
-
-```
-
-## Docker Image & Makefile Automation
-
-### Docker Image & Makefile Automation
-
-**Step 5 — Package into a Docker image:**
-
-```dockerfile
-
-# Dockerfile
-
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 5000
-
-CMD ["python", "app.py"]
-```
-
-```bash
-docker build -t flask-demo:v1.0.0 .
-docker run -p 5000:5000 flask-demo:v1.0.0
-
-# Verify
-
-curl http://localhost:5000/
-
+# Run locally
+make run
+# curl http://localhost:5000/health
 # {"message": "Build & Package Demo", "status": "ok"}
 
+# Build Docker image
+make build
+# Built: flask-demo:1.0.0-a3f8c12
+
+# Run in Docker
+make run-docker
+# curl http://localhost:5000/health
+# {"message": "Build & Package Demo", "status": "ok"}
+
+# Full CI simulation locally
+make ci
+# install → lint → test → build
+# CI pipeline passed locally
 ```
 
-**Step 6 — Tie everything together with a Makefile:**
-
-```makefile
-.PHONY: install test build run all
-
-install:
-	pip install -r requirements.txt
-
-test:
-	pytest tests/
-
-build:
-	docker build -t flask-demo:v1.0.0 .
-
-run:
-	docker run -p 5000:5000 flask-demo:v1.0.0
-
-all: install test build
-```
-
-Now the entire pipeline runs with one command:
+#### Verify the Container
 
 ```bash
-make all     # install → test → build Docker image
-make run     # start the container
+# Check the image was built
+docker images | grep flask-demo
+
+# Inspect what is inside (security check — make sure it runs as non-root)
+docker inspect flask-demo:latest | grep -i user
+
+# Run with environment variables
+docker run -p 5000:5000 -e FLASK_ENV=production flask-demo:latest
+
+# Check running processes inside container
+docker exec <container-id> ps aux
+# Should show: appuser   python -m flask run
+# Should NOT show: root
 ```
 
-### Complete Flow Summary
+---
+
+
+
+## Quick Reference
+
 
 ```
-1. Write code              app.py
-          |
-2. Declare dependencies    requirements.txt  (pinned versions)
-          |
-3. Install                 pip install -r requirements.txt
-          |
-4. Test                    pytest tests/  (must pass before packaging)
-          |
-5. Package                 docker build -t flask-demo:v1.0.0 .
-          |
-6. Store                   docker push → Docker Hub / ECR
-          |
-7. Deploy                  container runs identically in any environment
+Why It Exists
+  Build tools  → turn source code into deployable artifacts, reproducibly
+  Package mgrs → declare, lock, and install dependencies consistently
+
+Build Tools by Language
+  Java/Kotlin  → Gradle  (build.gradle,   ./gradlew build)
+  Python       → Poetry  (pyproject.toml, poetry build)
+  JavaScript   → npm     (package.json,   npm run build)
+  Go           → go tool (go.mod,         go build ./...)
+
+Gradle Key Commands
+  ./gradlew build        → compile + test + package (produces .jar)
+  ./gradlew test         → run tests only
+  ./gradlew clean build  → fresh build from scratch
+  Always use ./gradlew (wrapper), not system gradle
+
+Poetry Key Commands
+  poetry install         → install all deps + create virtualenv
+  poetry install --only main  → production only (for Docker)
+  poetry add flask       → add dependency
+  poetry run pytest      → run inside virtualenv
+  poetry build           → build .whl package
+  poetry.lock            → always commit this to git
+
+Versioning
+  SemVer: MAJOR.MINOR.PATCH
+  MAJOR → breaking change / MINOR → new feature / PATCH → bug fix
+  Tag artifacts with version + git SHA for full traceability
+  Never deploy "latest" tag to production
+
+Dockerfile Best Practices
+  Multi-stage builds    → small, lean production image
+  Copy deps first       → layer caching speeds up rebuilds
+  Run as non-root       → security requirement
+  Use slim/distroless   → minimal attack surface
+
+Makefile
+  Standardizes commands across dev, CI, and onboarding
+  make install / make test / make lint / make build / make push
+  CI pipeline calls make targets — same commands locally and in CI
+
+Reference Project Structure
+  app/          → Flask application code
+  tests/        → pytest test suite
+  Dockerfile    → multi-stage production image
+  Makefile      → standard commands for all workflows
+  pyproject.toml + poetry.lock → dependency declaration and lock
 ```
 
-This is the complete Build & Package Management cycle — from raw source code to a deployable, versioned Docker image ready for any environment.
 

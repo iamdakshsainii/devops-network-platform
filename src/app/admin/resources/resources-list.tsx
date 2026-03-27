@@ -30,7 +30,7 @@ const TYPE_ICON_MAP: Record<string, React.ElementType> = {
 
 export default function AdminResourcesList({ resources }: { resources: any[] }) {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("PUBLISHED");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [localResources, setLocalResources] = useState(resources);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -92,9 +92,8 @@ export default function AdminResourcesList({ resources }: { resources: any[] }) 
               onChange={(e) => setStatusFilter(e.target.value)}
               className="h-9 px-3 border rounded-md bg-background text-sm flex-1 sm:flex-none"
             >
-              <option value="ALL">All Status</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="PENDING">Pending Approval</option>
+              <option value="PUBLISHED">Live</option>
+              <option value="PENDING">Draft</option>
               <option value="DELETED">Recycle Bin</option>
             </select>
             <Link href="/admin/resources/new" className="flex-1 sm:flex-none">
@@ -168,7 +167,7 @@ export default function AdminResourcesList({ resources }: { resources: any[] }) 
                             : "bg-amber-500/10 text-amber-600"
                         }`}
                     >
-                      {res.status === "PUBLISHED" ? "LIVE" : res.status === "DELETED" ? "DELETED" : "PENDING"}
+                      {res.status === "PUBLISHED" ? "LIVE" : res.status === "DELETED" ? "DELETED" : "DRAFT"}
                     </span>
                   </div>
                   <CardTitle className="text-lg mt-2 line-clamp-2">{res.title}</CardTitle>
