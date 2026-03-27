@@ -15,7 +15,7 @@ function normalizeUrl(url: string | null | undefined): string {
     );
     return u.toString().toLowerCase();
   } catch {
-    // Not a valid URL — fall back to plain lowercase trim
+    // Not a valid URL — fall back to plain lowercase trimss
     return url.trim().toLowerCase();
   }
 }
@@ -120,7 +120,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
           const idsToDelete = Array.from(roadmapUrlToGlobalId.entries())
             .filter(([url, gid]) => !incomingNormalizedSet.has(url) && gid)
             .map(([, gid]) => gid!);
-          
+
           if (idsToDelete.length > 0) {
             await tx.resource.deleteMany({
               where: { id: { in: idsToDelete }, tags: "Module" },
@@ -167,7 +167,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
                 urlToGlobalId.set(urlKey, created.id);
               }
             }
-            
+
             newResources.push({
               title: r.title || "",
               url: r.url || "",
